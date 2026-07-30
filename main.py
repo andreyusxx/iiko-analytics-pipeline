@@ -1,17 +1,29 @@
-import json
+import os
+from dotenv import load_dotenv
 import pandas as pd
+from sqlalchemy import create_engine
 
-# 1. Extract (зчитуємо сирі дані з мок-файлу)
-with open('mock_iiko_response.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
+# Завантажуємо змінні середовища з файлу .env
+load_dotenv()
 
-df = pd.DataFrame(data['transactions'])
-print("--- Сирі дані завантажені ---")
-print(df)
+# Отримуємо рядок підключення до бази даних
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 2. Transform (агрегуємо дані: рахуємо загальну виручку по працівниках)
-summary = df.groupby('employee')['price'].sum().reset_index()
-summary.rename(columns={'price': 'total_sales'}, inplace=True)
+if not DATABASE_URL:
+    print("❌ Помилка: DATABASE_URL не знайдено у файлі .env!")
+else:
+    print("✅ Рядок підключення успішно завантажено!")
 
-print("\n--- Трансформовані дані (виручка по працівниках) ---")
-print(summary)
+    try:
+        # Створюємо підключення (Engine) до PostgreSQL
+        engine = create_engine(DATABASE_URL)
+
+        # Робимо тестовий запит до бази даних через pandas
+        test_df = pd.read_sql("SELECT version();", engine)
+        
+        print("\n🚀 Успішне з'єднання з базою даних Neon!")
+        print("Версія бази даних PostgreSQL:")
+        print(test_df.iloc[0, 0])
+
+    except Exception as e:
+        print(f"❌ Сталася помилка при підключенні до бази даних: {e}")
