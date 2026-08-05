@@ -40,6 +40,15 @@ def run_incremental_etl():
                 is_banquet BOOLEAN,
                 total_sum NUMERIC(10, 2)
             );
+
+            CREATE TABLE IF NOT EXISTS silver_sale_items (
+                id SERIAL PRIMARY KEY,
+                order_id VARCHAR(50) REFERENCES silver_sales(order_id),
+                dish_id VARCHAR(50),
+                name VARCHAR(100),
+                price NUMERIC(10, 2),
+                quantity INT
+            );
             
             CREATE TABLE IF NOT EXISTS processed_files (
                 file_name VARCHAR(255) PRIMARY KEY,
@@ -88,6 +97,11 @@ def run_incremental_etl():
             ON CONFLICT (file_name) DO NOTHING;
         """
 
+        insert_item_query = """
+            INSERT INTO silver_sale_items (order_id, dish_id, name, price, quantity)
+            VALUES (%s, %s, %s, %s, %s);
+        """
+
         # 5. Цикл обробки виключно нових файлів
         for file_info in new_files:
             file_key = file_info["Key"]
@@ -116,6 +130,16 @@ def run_incremental_etl():
                     row.get("is_banquet"),
                     row.get("total_sum")
                 ))
+
+                items = row.get("items", [])
+                for item in items:
+                    cursor.execute(insert_item_query, (
+                        order_id,
+                        item.get("dish_id"),
+                        item.get("name"),
+                        item.get("price"),
+                        item.get("quantity")
+                    ))
                 success_rows += 1
             # Фіксуємо факт успішної обробки файлу в таблиці станів
             cursor.execute(insert_state_query, (file_key,))
