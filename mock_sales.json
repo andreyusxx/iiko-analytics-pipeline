@@ -1,0 +1,1398 @@
+[
+    {
+        "order_id": "ord_1000",
+        "datetime": "2026-08-05 02:17:31",
+        "is_banquet": false,
+        "total_sum": 850,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1001",
+        "datetime": "2026-08-05 03:17:31",
+        "is_banquet": false,
+        "total_sum": 820,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1002",
+        "datetime": "2026-07-30 19:17:31",
+        "is_banquet": false,
+        "total_sum": 1000,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1003",
+        "datetime": "2026-08-03 23:17:31",
+        "is_banquet": false,
+        "total_sum": 450,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1004",
+        "datetime": "2026-07-30 09:17:31",
+        "is_banquet": false,
+        "total_sum": 810,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1005",
+        "datetime": "2026-08-02 13:17:31",
+        "is_banquet": false,
+        "total_sum": 180,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1006",
+        "datetime": "2026-07-30 12:17:31",
+        "is_banquet": false,
+        "total_sum": 600,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1007",
+        "datetime": "2026-07-31 01:17:31",
+        "is_banquet": true,
+        "total_sum": 990,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1008",
+        "datetime": "2026-08-05 02:17:31",
+        "is_banquet": false,
+        "total_sum": 620,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1009",
+        "datetime": "2026-08-02 23:17:31",
+        "is_banquet": true,
+        "total_sum": 5840,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1010",
+        "datetime": "2026-08-02 16:17:31",
+        "is_banquet": false,
+        "total_sum": 1040,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1011",
+        "datetime": "2026-07-30 18:17:31",
+        "is_banquet": false,
+        "total_sum": 1500,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1012",
+        "datetime": "2026-07-31 07:17:31",
+        "is_banquet": false,
+        "total_sum": 1350,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1013",
+        "datetime": "2026-08-02 00:17:31",
+        "is_banquet": false,
+        "total_sum": 600,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1014",
+        "datetime": "2026-08-04 15:17:31",
+        "is_banquet": false,
+        "total_sum": 450,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1015",
+        "datetime": "2026-08-01 18:17:31",
+        "is_banquet": false,
+        "total_sum": 180,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1016",
+        "datetime": "2026-07-31 22:17:31",
+        "is_banquet": true,
+        "total_sum": 4620,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1017",
+        "datetime": "2026-08-01 20:17:31",
+        "is_banquet": false,
+        "total_sum": 1380,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1018",
+        "datetime": "2026-07-31 05:17:31",
+        "is_banquet": true,
+        "total_sum": 3440,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1019",
+        "datetime": "2026-08-02 00:17:31",
+        "is_banquet": false,
+        "total_sum": 400,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1020",
+        "datetime": "2026-07-30 17:17:31",
+        "is_banquet": false,
+        "total_sum": 1350,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1021",
+        "datetime": "2026-08-01 06:17:31",
+        "is_banquet": true,
+        "total_sum": 5280,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1022",
+        "datetime": "2026-08-01 18:17:31",
+        "is_banquet": true,
+        "total_sum": 4110,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1023",
+        "datetime": "2026-07-30 17:17:31",
+        "is_banquet": true,
+        "total_sum": 3330,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1024",
+        "datetime": "2026-07-30 16:17:31",
+        "is_banquet": true,
+        "total_sum": 5450,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1025",
+        "datetime": "2026-07-31 11:17:31",
+        "is_banquet": true,
+        "total_sum": 10710,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1026",
+        "datetime": "2026-07-30 01:17:31",
+        "is_banquet": false,
+        "total_sum": 1270,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1027",
+        "datetime": "2026-07-31 16:17:31",
+        "is_banquet": true,
+        "total_sum": 4950,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1028",
+        "datetime": "2026-07-30 09:17:31",
+        "is_banquet": true,
+        "total_sum": 5830,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1029",
+        "datetime": "2026-07-30 05:17:31",
+        "is_banquet": false,
+        "total_sum": 670,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1030",
+        "datetime": "2026-08-01 15:17:31",
+        "is_banquet": false,
+        "total_sum": 180,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1031",
+        "datetime": "2026-08-05 12:17:31",
+        "is_banquet": false,
+        "total_sum": 850,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1032",
+        "datetime": "2026-07-31 17:17:31",
+        "is_banquet": false,
+        "total_sum": 780,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1033",
+        "datetime": "2026-08-03 21:17:31",
+        "is_banquet": true,
+        "total_sum": 2480,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1034",
+        "datetime": "2026-08-05 14:17:31",
+        "is_banquet": false,
+        "total_sum": 400,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1035",
+        "datetime": "2026-08-01 13:17:31",
+        "is_banquet": true,
+        "total_sum": 9010,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1036",
+        "datetime": "2026-08-01 01:17:31",
+        "is_banquet": false,
+        "total_sum": 1800,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1037",
+        "datetime": "2026-07-31 01:17:31",
+        "is_banquet": true,
+        "total_sum": 7680,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1038",
+        "datetime": "2026-08-04 13:17:31",
+        "is_banquet": true,
+        "total_sum": 5030,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 3
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1039",
+        "datetime": "2026-08-04 21:17:31",
+        "is_banquet": true,
+        "total_sum": 7030,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1040",
+        "datetime": "2026-08-05 14:17:31",
+        "is_banquet": false,
+        "total_sum": 180,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1041",
+        "datetime": "2026-08-02 23:17:31",
+        "is_banquet": true,
+        "total_sum": 6600,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1042",
+        "datetime": "2026-08-01 00:17:31",
+        "is_banquet": false,
+        "total_sum": 440,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1043",
+        "datetime": "2026-07-31 08:17:31",
+        "is_banquet": false,
+        "total_sum": 1120,
+        "items": [
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1044",
+        "datetime": "2026-08-05 13:17:31",
+        "is_banquet": true,
+        "total_sum": 2180,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 4
+            },
+            {
+                "dish_id": "item_2",
+                "name": "Цезар з куркою",
+                "price": 220,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 2
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1045",
+        "datetime": "2026-07-31 14:17:31",
+        "is_banquet": false,
+        "total_sum": 1500,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1046",
+        "datetime": "2026-08-03 12:17:31",
+        "is_banquet": true,
+        "total_sum": 3540,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 3
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 2
+            },
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 4
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1047",
+        "datetime": "2026-08-01 18:17:31",
+        "is_banquet": false,
+        "total_sum": 450,
+        "items": [
+            {
+                "dish_id": "item_1",
+                "name": "Стейк з лосося",
+                "price": 450,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1048",
+        "datetime": "2026-08-04 16:17:31",
+        "is_banquet": false,
+        "total_sum": 960,
+        "items": [
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            },
+            {
+                "dish_id": "item_4",
+                "name": "Десерт Тірамісу",
+                "price": 180,
+                "quantity": 1
+            }
+        ]
+    },
+    {
+        "order_id": "ord_1049",
+        "datetime": "2026-07-29 15:17:31",
+        "is_banquet": false,
+        "total_sum": 600,
+        "items": [
+            {
+                "dish_id": "item_3",
+                "name": "Вино Шато",
+                "price": 600,
+                "quantity": 1
+            }
+        ]
+    }
+]
