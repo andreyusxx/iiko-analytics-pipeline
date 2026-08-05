@@ -1,8 +1,19 @@
+import os
 import json
 import random
 from datetime import datetime, timedelta
+import boto3
+from botocore.client import Config
+from dotenv import load_dotenv
 
-def generate_mock_sales():
+load_dotenv()
+
+R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
+BUCKET_NAME = "iiko-data-lake-raw"
+
+def generate_and_upload_sales():
     """Генерує список мокових чеків (продажів) ресторану, включаючи банкетні замовлення."""
     menu_items = [
         {"id": "item_1", "name": "Стейк з лосося", "price": 450, "category": "Основні страви"},
@@ -15,7 +26,7 @@ def generate_mock_sales():
     start_date = datetime.now() - timedelta(days=7) # Дані за останній тиждень
     
     for i in range(50): # Генеруємо 50 тестових чеків
-        order_id = f"ord_{1000 + i}"
+        order_id = f"ord_{random.randint(10000, 99999)}"
         is_banquet = random.choice([True, False]) # Випадково визначаємо, чи це банкет
         order_time = start_date + timedelta(hours=random.randint(0, 168))
         
@@ -42,12 +53,31 @@ def generate_mock_sales():
             "total_sum": total_sum,
             "items": items_in_order
         })
-        
-    return orders
+    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"sales_batch_{timestamp_str}.json"
+    
+    json_data = json.dumps(orders, ensure_ascii=False, indent=4)
+    
+    s3_client = boto3.client(
+            's3',
+            endpoint_url=R2_ENDPOINT_URL,
+            aws_access_key_id=R2_ACCESS_KEY_ID,
+            aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+            config=Config(signature_version='s3v4')
+        )
+            
+    cloud_path = f"bronze/sales/{filename}"
+            
+    try:
+        s3_client.put_object(
+            Bucket=BUCKET_NAME,
+            Key=cloud_path,
+            Body=json_data,
+            ContentType="application/json"
+        )
+        print(f"Успішно згенеровано та завантажено новий унікальний файл: {cloud_path}")
+    except Exception as e:
+        print(f"Помилка при завантаженні в R2: {e}")
 
 if __name__ == "__main__":
-    data = generate_mock_sales()
-    # Зберігаємо згенеровані дані у локальний JSON-файл (імітація сирих даних)
-    with open("mock_sales.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    print("Успішно згенеровано 50 мокових чеків у файл mock_sales.json!")
+    generate_and_upload_sales()
