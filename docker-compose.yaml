@@ -8,6 +8,8 @@ services:
       - POSTGRES_DB=airflow
     networks:
       - airflow-net
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
 
   airflow:
     image: apache/airflow:2.8.1
@@ -26,11 +28,8 @@ services:
       - postgres
     networks:
       - airflow-net
+    
 
-networks:
-  airflow-net:
-    driver: bridge
-  
   superset:
     image: apache/superset:latest
     container_name: superset
@@ -40,3 +39,14 @@ networks:
       - SUPERSET_SECRET_KEY=secret-key
     depends_on:
       - postgres
+    volumes:
+      - ./superset_home:/app/superset_home
+
+
+networks:
+  airflow-net:
+    driver: bridge
+volumes:
+  postgres_data:
+  superset_home:
+  
