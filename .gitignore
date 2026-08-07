@@ -3,3 +3,5 @@ __pycache__/
 .env
 *.pyc
 airflow/logs/
+postgres_data/
+superset_home/

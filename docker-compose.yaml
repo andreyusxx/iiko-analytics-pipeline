@@ -1,11 +1,11 @@
-version: '3.8'
+
 services:
   postgres:
     image: postgres:13
     environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
+    - POSTGRES_USER=${POSTGRES_USER}
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    - POSTGRES_DB=${POSTGRES_DB}
     networks:
       - airflow-net
     volumes:
@@ -17,6 +17,12 @@ services:
     environment:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - _AIRFLOW_WWW_USER_USERNAME= ${_AIRFLOW_WWW_USER_USERNAME}
+      - _AIRFLOW_WWW_USER_PASSWORD= ${_AIRFLOW_WWW_USER_PASSWORD}
+      - _AIRFLOW_WWW_USER_FIRSTNAME= ${_AIRFLOW_WWW_USER_FIRSTNAME}
+      - _AIRFLOW_WWW_USER_LASTNAME= ${_AIRFLOW_WWW_USER_LASTNAME}
+      - _AIRFLOW_WWW_USER_ROLE= ${_AIRFLOW_WWW_USER_ROLE}
+      - _AIRFLOW_WWW_USER_EMAIL= ${_AIRFLOW_WWW_USER_EMAIL}
     ports:
       - "8081:8080"
     volumes:
