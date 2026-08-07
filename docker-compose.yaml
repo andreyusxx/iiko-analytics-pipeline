@@ -16,11 +16,12 @@ services:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - .:/opt/airflow/project  # Додаємо весь проєкт у контейнер:/opt/airflow/plugins
     depends_on:
       - postgres
     networks:
