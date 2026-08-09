@@ -3,7 +3,8 @@ import os
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.exceptions import AirflowException
 # Додаємо шлях до нашого проєкту в системний шлях Python всередині контейнера
 sys.path.insert(0, '/opt/airflow/project')
 
@@ -19,6 +20,32 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
 }
+def check_data_quality():
+    # Підключаємося до бази Neon через налаштоване з'єднання в Airflow
+    hook = PostgresHook(postgres_conn_id='postgres_default')
+    
+    # Перевірка 1: Чи є від'ємні або нульові чеки
+    records_negative = hook.get_first(
+        "SELECT COUNT(*) FROM silver_sales WHERE total_sum <= 0;"
+    )
+    if records_negative[0] > 0:
+        raise AirflowException(f"Якість даних порушено! Знайдено {records_negative[0]} чеків з від'ємною або нульовою сумою.")
+
+    # Перевірка 2: Чи є дублікати order_id
+    records_duplicates = hook.get_first(
+        """
+        SELECT COUNT(*) FROM (
+            SELECT order_id, COUNT(*) 
+            FROM silver_sales 
+            GROUP BY order_id 
+            HAVING COUNT(*) > 1
+        ) t;
+        """
+    )
+    if records_duplicates[0] > 0:
+        raise AirflowException(f"Якість даних порушено! Знайдено {records_duplicates[0]} дублікатів order_id.")
+
+    print("Усі перевірки якості даних успішно пройдено!")
 
 with DAG(
     'iiko_restaurant_etl_pipeline',
@@ -48,4 +75,10 @@ with DAG(
          python_callable=create_gold_views,
      )
 
-    t1_generate_bronze >> t2_transform_silver >> t3_create_gold
+    # Завдання 4: Перевірка якості даних
+    t4_check_quality = PythonOperator(
+        task_id='check_data_quality',
+        python_callable=check_data_quality,
+    )
+
+    t1_generate_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality
