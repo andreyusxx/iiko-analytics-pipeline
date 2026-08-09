@@ -35,24 +35,26 @@ services:
     networks:
       - airflow-net
     
-
-  superset:
-    image: apache/superset:latest
-    container_name: superset
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
     ports:
-      - "8088:8088"
+      - "3001:3000"
     environment:
-      - SUPERSET_SECRET_KEY=secret-key
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: postgres
+      MB_DB_PASS: my_secure_password
+      MB_DB_HOST: postgres
+    networks:
+      - airflow-net
     depends_on:
       - postgres
-    volumes:
-      - ./superset_home:/app/superset_home
-
 
 networks:
   airflow-net:
     driver: bridge
 volumes:
   postgres_data:
-  superset_home:
   
