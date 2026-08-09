@@ -17,7 +17,7 @@ services:
     command: standalone
     environment:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@postgres/airflow
       - _AIRFLOW_WWW_USER_USERNAME=${_AIRFLOW_WWW_USER_USERNAME}
       - _AIRFLOW_WWW_USER_PASSWORD=${_AIRFLOW_WWW_USER_PASSWORD}
       - _AIRFLOW_WWW_USER_FIRSTNAME=${_AIRFLOW_WWW_USER_FIRSTNAME}
@@ -30,7 +30,7 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
-      - .:/opt/airflow/project  # Додаємо весь проєкт у контейнер:/opt/airflow/plugins
+      - .:/opt/airflow/project 
     depends_on:
       - postgres
     networks:
@@ -45,9 +45,10 @@ services:
       MB_DB_TYPE: postgres
       MB_DB_DBNAME: metabase
       MB_DB_PORT: 5432
-      MB_DB_USER: postgres
-      MB_DB_PASS: my_secure_password
       MB_DB_HOST: postgres
+
+      MB_DB_USER: ${METABASE_DB_USER}
+      MB_DB_PASS: ${METABASE_DB_PASS}
     networks:
       - airflow-net
     depends_on:
