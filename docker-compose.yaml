@@ -25,7 +25,7 @@ services:
       - _AIRFLOW_WWW_USER_ROLE=${_AIRFLOW_WWW_USER_ROLE}
       - _AIRFLOW_WWW_USER_EMAIL=${_AIRFLOW_WWW_USER_EMAIL}
       - AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT=300
-    ports:
+      - AIRFLOW_CONN_POSTGRES_DEFAULT=${DATABASE_URL}
       - "8081:8080"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
