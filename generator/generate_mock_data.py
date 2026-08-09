@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from validator import validate_raw_json
+
 R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
 R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
@@ -57,6 +59,15 @@ def generate_and_upload_sales():
     filename = f"sales_batch_{timestamp_str}.json"
     
     json_data = json.dumps(orders, ensure_ascii=False, indent=4)
+
+    try:
+        print("Починаємо валідацію сирих JSON-даних...")
+        validate_raw_json(json_data)
+        print("Валідація успішна! Дані чисті, продовжуємо завантаження.")
+    except Exception as e:
+        print(f"ПОМИЛКА ЯКОСТІ ДАНИХ! Завантаження в даталейк скасовано.")
+        # Викидаємо виняток, щоб Airflow позначив таску як Failed
+        raise ValueError(f"Зупинка пайплайну: {e}")
     
     s3_client = boto3.client(
             's3',
