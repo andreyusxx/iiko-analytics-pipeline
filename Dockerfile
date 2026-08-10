@@ -1,13 +1,15 @@
-FROM apache/superset:latest
+# Використовуємо легку офіційну версію Python
+FROM python:3.11-slim
 
-USER root
+# Робоча директорія всередині контейнера
+WORKDIR /app
 
-# Встановлюємо системні залежності для роботи PostgreSQL
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq-dev gcc && \
-    rm -rf /var/lib/apt/lists/*
+# Копіюємо файл залежностей та встановлюємо їх
+COPY requirements-bot.txt .
+RUN pip install --no-cache-dir -r requirements-bot.txt 
 
-# Встановлюємо Python-драйвер глобально
-RUN pip install --no-cache-dir psycopg2-binary
+# Копіюємо весь решту коду проєкту
+COPY . .
 
-USER superset
+# Команда для запуску бота
+CMD ["python", "bot.py"]
