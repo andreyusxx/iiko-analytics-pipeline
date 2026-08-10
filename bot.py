@@ -3,8 +3,9 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
-
 # Імпортуємо наші функції з database.py
 from database import get_connection, add_employee, register_shift
 
@@ -13,6 +14,12 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
+# Описуємо стани для процесу додавання працівника
+class AddEmployee(StatesGroup):
+    name = State()
+    role = State()
+    rate = State()
 
 # Команда /start
 @dp.message(Command("start"))
@@ -25,7 +32,7 @@ async def cmd_start(message: types.Message):
         resize_keyboard=True
     )
     await message.answer(
-        "Привіт! Я бот для обліку змін та зарплат ресторану 📊\nОбери потрібну дію на клавіатурі нижче:",
+        "Обери потрібну дію:",
         reply_markup=keyboard
     )
 
@@ -45,7 +52,7 @@ async def show_employees(message: types.Message):
         response = "📋 **Список персоналу:**\n\n"
         for row in rows:
             emp_id, name, role, rate = row
-            response.append(f"ID: {emp_id} | {name} ({role}) — Ставка: {rate} грн/день\n")
+            response += f"ID: {emp_id} | {name} ({role}) — Ставка: {rate} грн/день\n"
             
         # Форматуємо рядок виводу
         text_output = "".join(response)
@@ -55,6 +62,46 @@ async def show_employees(message: types.Message):
     finally:
         cur.close()
         conn.close()
+
+# Крок 1: Початок додавання працівника
+@dp.message(F.text == "➕ Додати працівника")
+async def start_add_employee(message: types.Message, state: FSMContext):
+    await state.set_state(AddEmployee.name)
+    await message.answer("Введи ПІБ нового працівника:")
+
+# Крок 2: Отримання імені та запит посади
+@dp.message(AddEmployee.name)
+async def process_name(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(AddEmployee.role)
+    await message.answer("Введи посаду (наприклад: hookah, waiter, bartender, admin):")
+
+# Крок 3: Отримання посади та запит ставки
+@dp.message(AddEmployee.role)
+async def process_role(message: types.Message, state: FSMContext):
+    await state.update_data(role=message.text)
+    await state.set_state(AddEmployee.rate)
+    await message.answer("Введи денну ставку (тільки число, наприклад 1500):")
+
+# Крок 4: Отримання ставки і збереження в Neon
+@dp.message(AddEmployee.rate)
+async def process_rate(message: types.Message, state: FSMContext):
+    try:
+        rate = float(message.text)
+        data = await state.get_data()
+        
+        # Зберігаємо через функцію бази даних
+        add_employee(data['name'], data['role'], rate)
+        
+        await message.answer(
+            f"✅ Працівника успішно додано!\n\n"
+            f"👤 ПІБ: {data['name']}\n"
+            f"💼 Посада: {data['role']}\n"
+            f"💰 Ставка: {rate} грн/день"
+        )
+        await state.clear()
+    except ValueError:
+        await message.answer("❌ Будь ласка, введи коректне числове значення для ставки (наприклад, 1500 або 1200.50):")
 
 # Запуск бота
 async def main():
