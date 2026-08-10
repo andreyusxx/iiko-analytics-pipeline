@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
-from database import get_connection, add_employee, register_shift
+from database import get_connection, add_employee, register_shift, update_employee
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -21,13 +21,21 @@ class AddEmployee(StatesGroup):
     role = State()
     rate = State()
 
+class UpdateEmployee(StatesGroup):
+    emp_id = State()
+    name = State()
+    role = State()
+    rate = State()
+
 # Команда /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     # Створюємо просту клавіатуру з кнопками
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text="👥 Список працівників"), types.KeyboardButton(text="➕ Додати працівника")]
+            [types.KeyboardButton(text="👥 Список працівників"), 
+             types.KeyboardButton(text="➕ Додати працівника")],
+             [types.KeyboardButton(text="✏️ Редагувати працівника")]
         ],
         resize_keyboard=True
     )
@@ -103,6 +111,57 @@ async def process_rate(message: types.Message, state: FSMContext):
     except ValueError:
         await message.answer("❌ Будь ласка, введи коректне числове значення для ставки (наприклад, 1500 або 1200.50):")
 
+# Крок 1: Початок редагування (просимо ID)
+@dp.message(F.text == "✏️ Редагувати працівника")
+async def start_update_employee(message: types.Message, state: FSMContext):
+    await state.set_state(UpdateEmployee.emp_id)
+    await message.answer("Введи **ID** працівника:", parse_mode="Markdown")
+
+# Крок 2: Зберігаємо ID та запитуємо нове ім'я
+@dp.message(UpdateEmployee.emp_id)
+async def process_update_id(message: types.Message, state: FSMContext):
+    try:
+        emp_id = int(message.text)
+        await state.update_data(emp_id=emp_id)
+        await state.set_state(UpdateEmployee.name)
+        await message.answer("Введи ПІБ працівника:")
+    except ValueError:
+        await message.answer("❌ ID має бути цілим числом. Спробуй ще раз ввести ID:")
+
+# Крок 3: Отримуємо нове ім'я та запитуємо нову посаду
+@dp.message(UpdateEmployee.name)
+async def process_update_name(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(UpdateEmployee.role)
+    await message.answer("Введи нову посаду:")
+
+# Крок 4: Отримуємо нову посаду та запитуємо нову ставку
+@dp.message(UpdateEmployee.role)
+async def process_update_role(message: types.Message, state: FSMContext):
+    await state.update_data(role=message.text)
+    await state.set_state(UpdateEmployee.rate)
+    await message.answer("Введи нову денну ставку:")
+
+# Крок 5: Зберігаємо зміни в базу даних Neon
+@dp.message(UpdateEmployee.rate)
+async def process_update_rate(message: types.Message, state: FSMContext):
+    try:
+        rate = float(message.text)
+        data = await state.get_data()
+        
+        # Викликаємо функцію оновлення
+        update_employee(data['emp_id'], data['name'], data['role'], rate)
+        
+        await message.answer(
+            f"✅ Дані працівника успішно оновлено!\n\n"
+            f"🆔 ID: {data['emp_id']}\n"
+            f"👤 ПІБ: {data['name']}\n"
+            f"💼 Посада: {data['role']}\n"
+            f"💰 Нова ставка: {rate} грн/день"
+        )
+        await state.clear()
+    except ValueError:
+        await message.answer("❌ Введи коректне числове значення для ставки:")
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")

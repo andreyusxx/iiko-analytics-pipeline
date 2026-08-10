@@ -46,3 +46,21 @@ def register_shift(employee_id: int):
     finally:
         cur.close()
         conn.close()
+
+def update_employee(employee_id: int, full_name: str, role: str, daily_rate: float):
+    """Оновлює дані працівника за його ID"""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "UPDATE employees SET full_name = %s, role = %s, daily_rate = %s WHERE id = %s;",
+            (full_name, role, daily_rate, employee_id)
+        )
+        conn.commit()
+        print(f"Дані працівника з ID {employee_id} успішно оновлено!")
+    except Exception as e:
+        conn.rollback()
+        print(f"Помилка при оновленні працівника: {e}")
+    finally:
+        cur.close()
+        conn.close()
