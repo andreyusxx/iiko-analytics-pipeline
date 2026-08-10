@@ -160,8 +160,8 @@ async def process_update_rate(message: types.Message, state: FSMContext):
             f"💰 Нова ставка: {rate} грн/день"
         )
         await state.clear()
-    except ValueError:
-        await message.answer("❌ Введи коректне числове значення для ставки:")
+    except Exception as e:
+        await message.answer(f"❌ Помилка: {e}")
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")
