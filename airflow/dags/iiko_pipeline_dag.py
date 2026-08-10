@@ -26,7 +26,7 @@ def check_data_quality():
     
     # Перевірка 1: Чи є від'ємні або нульові чеки
     records_negative = hook.get_first(
-        "SELECT COUNT(*) FROM silver_sales WHERE total_sum <= 0;"
+        "SELECT COUNT(*) FROM public.silver_sales WHERE total_sum <= 0;"
     )
     if records_negative[0] > 0:
         raise AirflowException(f"Якість даних порушено! Знайдено {records_negative[0]} чеків з від'ємною або нульовою сумою.")
@@ -36,7 +36,7 @@ def check_data_quality():
         """
         SELECT COUNT(*) FROM (
             SELECT order_id, COUNT(*) 
-            FROM silver_sales 
+            FROM public.silver_sales 
             GROUP BY order_id 
             HAVING COUNT(*) > 1
         ) t;
