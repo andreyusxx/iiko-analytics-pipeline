@@ -36,7 +36,8 @@ async def cmd_start(message: types.Message):
         keyboard=[
             [types.KeyboardButton(text="👥 Список працівників"), 
              types.KeyboardButton(text="➕ Додати працівника")],
-             [types.KeyboardButton(text="✏️ Редагувати працівника")]
+             [types.KeyboardButton(text="✏️ Редагувати працівника"),
+              types.KeyboardButton(text="📅 Управління змінами")]
         ],
         resize_keyboard=True
     )
