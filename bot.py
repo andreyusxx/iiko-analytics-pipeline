@@ -7,7 +7,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
-from database import get_connection, add_employee, register_shift, update_employee
+from database import get_connection, add_employee, register_shift, toggle_shift, update_employee
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -162,6 +163,36 @@ async def process_update_rate(message: types.Message, state: FSMContext):
         await state.clear()
     except Exception as e:
         await message.answer(f"❌ Помилка: {e}")
+
+# Кнопка для адміна
+@dp.message(F.text == "📅 Управління змінами")
+async def admin_shift_menu(message: types.Message):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, full_name FROM employees;")
+    rows = cur.fetchall()
+    
+    # Створюємо клавіатуру з іменами
+    buttons = []
+    for emp_id, name in rows:
+        buttons.append([InlineKeyboardButton(text=name, callback_data=f"toggle_{emp_id}")])
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await message.answer("Обери працівників, які сьогодні працюють:", reply_markup=keyboard)
+    cur.close()
+    conn.close()
+
+# Обробка натискань на кнопки
+@dp.callback_query(F.data.startswith("toggle_"))
+async def callback_toggle(callback: types.CallbackQuery):
+    emp_id = int(callback.data.split("_")[1])
+    status = toggle_shift(emp_id)
+    
+    # Оновлюємо повідомлення (коротка відповідь)
+    await callback.answer(f"Статус змінено: {status}")
+
+
+
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")
