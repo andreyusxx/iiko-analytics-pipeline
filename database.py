@@ -182,7 +182,7 @@ def get_report_for_dates(start_date: str, end_date: str):
             "employee_name": row[1],
             "role": row[2],
             "shift_date": str(row[3]),
-            "shift_rate": row[4],
+            "shift_rate": float(row[4]) if row[4] is not None else 0.0,
             "is_paid": row[5]
         })
     
