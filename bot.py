@@ -12,12 +12,14 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database import get_unpaid_shifts, mark_all_unpaid_as_paid, get_report_for_dates
 from storage import upload_payroll_report
 from datetime import datetime
+from middleware import AdminMiddleware
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+dp.message.outer_middleware(AdminMiddleware())
 
 # Описуємо стани для процесу додавання працівника
 class AddEmployee(StatesGroup):
