@@ -37,13 +37,14 @@ class PaymentPeriod(StatesGroup):
 async def cmd_start(message: types.Message):
     # Створюємо просту клавіатуру з кнопками
     keyboard = types.ReplyKeyboardMarkup(
-        keyboard=[
+    keyboard=[
         [types.KeyboardButton(text="👥 Список працівників"), types.KeyboardButton(text="➕ Додати працівника")],
-        [types.KeyboardButton(text="📅 Управління змінами"), types.KeyboardButton(text="🔍 Хто сьогодні працює?")],
-        [types.KeyboardButton(text="💰 Зарплати та борги"), types.KeyboardButton(text="💰 Закрити тиждень (вибрати період)")]
+        [types.KeyboardButton(text="✏️ Редагувати працівника"), types.KeyboardButton(text="📅 Управління змінами")],
+        [types.KeyboardButton(text="🔍 Хто сьогодні працює?"), types.KeyboardButton(text="💰 Зарплати та борги")],
+        [types.KeyboardButton(text="💰 Закрити тиждень (вибрати період)")]
     ],
-        resize_keyboard=True
-    )
+    resize_keyboard=True
+)
     await message.answer(
         "Обери потрібну дію:",
         reply_markup=keyboard
@@ -211,13 +212,7 @@ async def show_payroll_debts(message: types.Message):
         total_all += debt
 
     response += f"💵 **Загальна сума всіх боргів:** {total_all} грн"
-
-    # Інлайн-кнопка для закриття виплат
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Закрити виплати (оплатити все)", callback_data="pay_all_debts")]
-    ])
-
-    await message.answer(response, parse_mode="Markdown", reply_markup=keyboard)
+    await message.answer(response, parse_mode="Markdown")
 
 
 @dp.message(F.text == "🔍 Хто сьогодні працює?")
