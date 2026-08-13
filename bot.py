@@ -9,10 +9,11 @@ from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
 from database import get_connection, add_employee, get_today_shifts, register_shift, toggle_shift, update_employee
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from database import get_unpaid_shifts, mark_all_unpaid_as_paid, get_report_for_dates
+from database import get_unpaid_shifts, mark_all_unpaid_as_paid, get_report_for_dates, delete_employee_by_id
 from storage import upload_payroll_report
 from datetime import datetime
 from middleware import AdminMiddleware
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -69,13 +70,22 @@ async def show_employees(message: types.Message):
             return
 
         response = "📋 **Список персоналу:**\n\n"
+        keyboard = InlineKeyboardBuilder()
         for row in rows:
             emp_id, name, role, rate = row
             response += f"ID: {emp_id} | {name} ({role}) — Ставка: {rate} грн/день\n"
+
+            keyboard.button(
+                text=f"🗑 Видалити {name.split()[0]}", # Скоротимо текст кнопки для зручності
+                callback_data=f"del_employee_{emp_id}"
+            )
+        keyboard.adjust(1)
             
-        # Форматуємо рядок виводу
-        text_output = "".join(response)
-        await message.answer(text_output, parse_mode="Markdown")
+        await message.answer(
+            response, 
+            reply_markup=keyboard.as_markup(), 
+            parse_mode="Markdown"
+        )
     except Exception as e:
         await message.answer(f"Помилка при отриманні даних: {e}")
     finally:
@@ -275,6 +285,17 @@ async def process_end_date(message: types.Message, state: FSMContext):
     
     await state.clear()
 
+@dp.callback_query(lambda c: c.data.startswith("del_employee_"))
+async def callback_delete_employee(callback: types.CallbackQuery):
+    employee_id = int(callback.data.split("_")[2])
+    
+    try:
+        delete_employee_by_id(employee_id)
+        await callback.message.edit_text(f"✅ Працівника з ID {employee_id} успішно видалено з бази даних.")
+    except Exception as e:
+        await callback.message.answer(f"❌ Помилка під час видалення працівника: {e}")
+    
+    await callback.answer()
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")
