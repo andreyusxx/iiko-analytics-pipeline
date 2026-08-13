@@ -162,3 +162,30 @@ def get_today_shifts():
     cur.close()
     conn.close()
     return rows
+
+def get_report_for_dates(start_date: str, end_date: str):
+    """Отримує детальний звіт про зміни за вказаний період для вивантаження в R2"""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT s.id, e.full_name, e.role, s.shift_date, s.shift_rate, s.is_paid
+        FROM staff_shifts s
+        JOIN employees e ON s.employee_id = e.id
+        WHERE s.shift_date BETWEEN %s AND %s;
+    """, (start_date, end_date))
+    rows = cur.fetchall()
+    
+    report = []
+    for row in rows:
+        report.append({
+            "shift_id": row[0],
+            "employee_name": row[1],
+            "role": row[2],
+            "shift_date": str(row[3]),
+            "shift_rate": row[4],
+            "is_paid": row[5]
+        })
+    
+    cur.close()
+    conn.close()
+    return report

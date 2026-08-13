@@ -9,7 +9,10 @@ from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
 from database import get_connection, add_employee, get_today_shifts, register_shift, toggle_shift, update_employee
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from database import get_unpaid_shifts, mark_all_unpaid_as_paid
+from database import get_unpaid_shifts, mark_all_unpaid_as_paid, get_report_for_dates
+from storage import upload_payroll_report
+from datetime import datetime
+
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -243,11 +246,31 @@ async def process_end_date(message: types.Message, state: FSMContext):
     end_date = message.text
     data = await state.get_data()
     start_date = data['start_date']
+
+    try:
+        # 1. Екстракція (Extract): витягуємо дані з бази за обраний період
+        report_data = get_report_for_dates(start_date, end_date)
+        
+        if not report_data:
+            await message.answer("⚠️ За вказаний період не знайдено жодної зміни.")
+            await state.clear()
+            return
+
+        # 2. Завантаження в Data Lake (Load): формуємо унікальне ім'я файлу та відправляємо в R2
+        filename = f"payroll_{start_date}_{end_date}_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+        upload_payroll_report(report_data, filename)
+
+        # 3. Оновлення статусу в базі (транзакція закриття виплат)
+        count = mark_all_unpaid_as_paid(start_date, end_date)
+        await message.answer(
+            f"✅ Успішно виконано!\n"
+            f"• Звіт вивантажено в Cloudflare R2: `payroll_reports/{filename}`\n"
+            f"• Позначено як оплачені: {count} змін(и) у період з {start_date} по {end_date}.",
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        await message.answer(f"❌ Помилка під час обробки пайплайну: {e}")
     
-    # Викликаємо функцію оплати
-    count = mark_all_unpaid_as_paid(start_date, end_date)
-    
-    await message.answer(f"✅ Готово! Позначено як оплачені {count} змін(и) у період з {start_date} по {end_date}.")
     await state.clear()
 
 # Запуск бота
