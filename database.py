@@ -34,9 +34,15 @@ def register_shift(employee_id: int):
     conn = get_connection()
     cur = conn.cursor()
     try:
+        # Спочатку отримуємо поточну ставку працівника
+        cur.execute("SELECT daily_rate FROM employees WHERE id = %s;", (employee_id,))
+        emp_row = cur.fetchone()
+        if not emp_row:
+            raise ValueError("Працівника не знайдено")
+        current_rate = emp_row[0]
         cur.execute(
-            "INSERT INTO staff_shifts (employee_id) VALUES (%s);",
-            (employee_id,)
+            "INSERT INTO staff_shifts (employee_id, shift_rate) VALUES (%s, %s);",
+            (employee_id, current_rate)
         )
         conn.commit()
         print(f"Зміну для працівника з ID {employee_id} успішно зареєстровано!")
@@ -86,8 +92,15 @@ def toggle_shift(employee_id: int):
             cur.execute("DELETE FROM staff_shifts WHERE id = %s;", (exists[0],))
             status = "видалено"
         else:
+            # Отримуємо поточну ставку працівника на момент виходу
+            cur.execute("SELECT daily_rate FROM employees WHERE id = %s;", (employee_id,))
+            emp_row = cur.fetchone()
+            if not emp_row:
+                raise ValueError("Працівника не знайдено")
+            current_rate = emp_row[0]
+
             # Якщо немає — додаємо
-            cur.execute("INSERT INTO staff_shifts (employee_id) VALUES (%s);", (employee_id,))
+            cur.execute("INSERT INTO staff_shifts (employee_id, shift_rate) VALUES (%s, %s);", (employee_id, current_rate))
             status = "додано"
             
         conn.commit()
@@ -98,3 +111,39 @@ def toggle_shift(employee_id: int):
     finally:
         cur.close()
         conn.close()
+
+def get_unpaid_shifts():
+    """Повертає список боргів по змінах"""
+    conn = get_connection()
+    cur = conn.cursor()
+    # Групуємо по працівнику, щоб бачити, скільки кожен відпрацював неоплачених днів
+    cur.execute("""
+        SELECT e.full_name, COUNT(s.id) as days_worked, SUM(s.shift_rate) as total_debt
+        FROM staff_shifts s
+        JOIN employees e ON s.employee_id = e.id
+        WHERE s.is_paid = FALSE
+        GROUP BY e.full_name;
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def mark_all_unpaid_as_paid(start_date, end_date):
+    """Позначає зміни у вказаному діапазоні як оплачені"""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE staff_shifts 
+            SET is_paid = TRUE 
+            WHERE shift_date BETWEEN %s AND %s;
+        """, (start_date, end_date))
+        conn.commit()
+        count = cur.rowcount
+        cur.close()
+        conn.close()
+        return count
+    except Exception as e:
+        conn.rollback()
+        raise e
