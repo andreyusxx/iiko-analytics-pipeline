@@ -147,3 +147,18 @@ def mark_all_unpaid_as_paid(start_date, end_date):
     except Exception as e:
         conn.rollback()
         raise e
+    
+def get_today_shifts():
+    """Повертає список працівників, які мають зміну сьогодні"""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT e.full_name, e.role 
+        FROM staff_shifts s
+        JOIN employees e ON s.employee_id = e.id
+        WHERE s.shift_date = CURRENT_DATE;
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows

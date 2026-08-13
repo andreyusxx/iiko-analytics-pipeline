@@ -7,9 +7,9 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
-from database import get_connection, add_employee, register_shift, toggle_shift, update_employee
+from database import get_connection, add_employee, get_today_shifts, register_shift, toggle_shift, update_employee
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from database import get_unpaid_shifts, mark_all_unpaid_as_paid
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -28,17 +28,20 @@ class UpdateEmployee(StatesGroup):
     role = State()
     rate = State()
 
+class PaymentPeriod(StatesGroup):
+    start_date = State()
+    end_date = State()
+
 # Команда /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     # Створюємо просту клавіатуру з кнопками
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text="👥 Список працівників"), 
-             types.KeyboardButton(text="➕ Додати працівника")],
-             [types.KeyboardButton(text="✏️ Редагувати працівника"),
-              types.KeyboardButton(text="📅 Управління змінами")]
-        ],
+        [types.KeyboardButton(text="👥 Список працівників"), types.KeyboardButton(text="➕ Додати працівника")],
+        [types.KeyboardButton(text="📅 Управління змінами"), types.KeyboardButton(text="🔍 Хто сьогодні працює?")],
+        [types.KeyboardButton(text="💰 Зарплати та борги"), types.KeyboardButton(text="💰 Закрити тиждень (вибрати період)")]
+    ],
         resize_keyboard=True
     )
     await message.answer(
@@ -192,12 +195,71 @@ async def callback_toggle(callback: types.CallbackQuery):
     # Оновлюємо повідомлення (коротка відповідь)
     await callback.answer(f"Статус змінено: {status}")
 
+# Перегляд неоплачених змін і боргів
+@dp.message(F.text == "💰 Зарплати та борги")
+async def show_payroll_debts(message: types.Message):
+    rows = get_unpaid_shifts()
+    if not rows:
+        await message.answer("✅ Усі зміни повністю оплачені! Неоплачених боргів немає.")
+        return
 
+    response = "💰 **Неоплачені зміни та борги по ЗП:**\n\n"
+    total_all = 0
+    for row in rows:
+        name, days, debt = row
+        response += f"👤 **{name}**\n   • Відпрацьовано днів: {days}\n   • Сума до виплати: {debt} грн\n\n"
+        total_all += debt
+
+    response += f"💵 **Загальна сума всіх боргів:** {total_all} грн"
+
+    # Інлайн-кнопка для закриття виплат
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Закрити виплати (оплатити все)", callback_data="pay_all_debts")]
+    ])
+
+    await message.answer(response, parse_mode="Markdown", reply_markup=keyboard)
+
+
+@dp.message(F.text == "🔍 Хто сьогодні працює?")
+async def show_today_shifts(message: types.Message):
+    rows = get_today_shifts()
+    if not rows:
+        await message.answer("Сьогодні на зміні нікого немає.")
+        return
+        
+    response = "🗓 **Сьогодні на зміні:**\n\n"
+    for name, role in rows:
+        response += f"👤 {name} ({role})\n"
+    await message.answer(response, parse_mode="Markdown")
+
+@dp.message(F.text == "💰 Закрити тиждень (вибрати період)")
+async def start_payment_period(message: types.Message, state: FSMContext):
+    await state.set_state(PaymentPeriod.start_date)
+    await message.answer("Введи дату ПОЧАТКУ періоду (у форматі YYYY-MM-DD):")
+
+@dp.message(PaymentPeriod.start_date)
+async def process_start_date(message: types.Message, state: FSMContext):
+    await state.update_data(start_date=message.text)
+    await state.set_state(PaymentPeriod.end_date)
+    await message.answer("Введи дату КІНЦЯ періоду (у форматі YYYY-MM-DD):")
+
+@dp.message(PaymentPeriod.end_date)
+async def process_end_date(message: types.Message, state: FSMContext):
+    end_date = message.text
+    data = await state.get_data()
+    start_date = data['start_date']
+    
+    # Викликаємо функцію оплати
+    count = mark_all_unpaid_as_paid(start_date, end_date)
+    
+    await message.answer(f"✅ Готово! Позначено як оплачені {count} змін(и) у період з {start_date} по {end_date}.")
+    await state.clear()
 
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
