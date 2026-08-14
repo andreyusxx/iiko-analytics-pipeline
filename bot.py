@@ -14,11 +14,17 @@ from storage import upload_payroll_report
 from datetime import datetime
 from middleware import AdminMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+import openai
+
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
+client = openai.OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.getenv("GROQ_API_KEY")
+)
 dp = Dispatcher()
 dp.message.outer_middleware(AdminMiddleware())
 
@@ -38,6 +44,9 @@ class PaymentPeriod(StatesGroup):
     start_date = State()
     end_date = State()
 
+class AIAgentStates(StatesGroup):
+    waiting_for_question = State()
+
 # Команда /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -47,7 +56,7 @@ async def cmd_start(message: types.Message):
         [types.KeyboardButton(text="👥 Список працівників"), types.KeyboardButton(text="➕ Додати працівника")],
         [types.KeyboardButton(text="✏️ Редагувати працівника"), types.KeyboardButton(text="📅 Управління змінами")],
         [types.KeyboardButton(text="🔍 Хто сьогодні працює?"), types.KeyboardButton(text="💰 Зарплати та борги")],
-        [types.KeyboardButton(text="💰 Закрити тиждень (вибрати період)")]
+        [types.KeyboardButton(text="💰 Закрити тиждень (вибрати період)"), types.KeyboardButton(text="🤖 AI Аналітик")]
     ],
     resize_keyboard=True
 )
@@ -296,6 +305,86 @@ async def callback_delete_employee(callback: types.CallbackQuery):
         await callback.message.answer(f"❌ Помилка під час видалення працівника: {e}")
     
     await callback.answer()
+
+@dp.message(F.text == "🤖 AI Аналітик")
+async def ai_analyst_start(message: types.Message, state: FSMContext):
+    await state.set_state(AIAgentStates.waiting_for_question)
+    await message.answer("Я твій AI-аналітик. Напиши будь-яке запитання:")
+
+@dp.message(AIAgentStates.waiting_for_question)
+async def process_ai_question(message: types.Message, state: FSMContext):
+    user_question = message.text
+    await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
+    
+    # Описуємо схему бази даних для LLM, щоб вона знала структуру
+    db_schema = """
+    Tables and Views in public schema:
+    1. employees (id, full_name, role, daily_rate)
+    2. staff_shifts (id, employee_id, shift_date, is_paid, shift_rate)
+    3. processed_files (file_name, processed_at)
+    4. silver_sales (order_id, datetime, is_banquet, total_sum)
+    5. silver_sale_items (id, order_id, dish_name, name, quantity)
+    6. gold_dish_performance (name, dish_id, orders_count, total_revenue, total_sold_quantity)
+    7. gold_sales_summary (sale_date, is_banquet, total_orders, daily_revenue, average_check)
+    """
+    
+    try:
+        # 1. Генерація SQL за допомогою суворої системної інструкції для Llama-3.3
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "Ти генератор SQL-запитів для PostgreSQL. Ти мусиш повернути ВИКЛЮЧНО чистий SQL-запит. Жодних пояснень, жодних привітань, жодного форматування markdown (не використовуй ```sql). Тільки валідний SQL-код, що починається з SELECT."
+                },
+                {
+                    "role": "user", 
+                    "content": f"Схема бази даних:\n{db_schema}\n\nЗапитання користувача: {user_question}"
+                }
+            ],
+            temperature=0
+        )
+        sql_query = response.choices[0].message.content.strip()
+        
+        # Надійне очищення від можливих markdown-тегів
+        sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
+        print(f"🛠 [AI DEBUG] Generated SQL: {sql_query}")  # Виведе в термінал Docker для перевірки
+        
+        # 2. Виконання запиту в базі даних Neon PostgreSQL
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(sql_query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        print(f"📊 [AI DEBUG] DB Result: {rows}")  # Виведе результати з бази
+        
+        # 3. Формування відповіді для користувача
+        summary_response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "Ти корисний бізнес-асистент ресторану. Напиши коротку, чітку та ввічливу відповідь українською мовою на основі отриманих даних з бази."
+                },
+                {
+                    "role": "user", 
+                    "content": f"Запитання: {user_question}\nРезультат виконання SQL з бази даних: {rows}"
+                }
+            ],
+            temperature=0.1
+        )
+        final_answer = summary_response.choices[0].message.content.strip()
+        
+        await message.answer(f"📊 **Результат аналізу:**\n\n{final_answer}", parse_mode="Markdown")
+        
+    except Exception as e:
+        print(f"❌ [AI ERROR] {e}")
+        await message.answer(f"❌ Сталася помилка під час обробки запиту: {e}")
+    finally:
+        await state.clear()
+
 # Запуск бота
 async def main():
     print("Бот запущений і готовий приймати повідомлення...")
