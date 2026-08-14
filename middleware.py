@@ -10,8 +10,8 @@ class AdminMiddleware(BaseMiddleware):
         event: Message,
         data: Dict[str, Any]
     ) -> Any:
-        admin_id = int(os.getenv("ADMIN_ID"))
-        allowed_ids = [int(i.strip()) for i in os.getenv("ALLOWED_IDS", "").split(",") if i.strip()]
+        allowed_ids_raw = os.getenv("ALLOWED_IDS", "")
+        allowed_ids = [int(i.strip()) for i in allowed_ids_raw.split(",") if i.strip()]
         # Перевірка: чи є відправник адміном
         if event.from_user.id not in allowed_ids:
             await event.answer("🚫 Доступ заборонено. Ви не авторизовані для керування цим ботом.")
