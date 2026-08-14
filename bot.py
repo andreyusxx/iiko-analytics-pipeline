@@ -71,7 +71,7 @@ async def show_employees(message: types.Message):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT id, full_name, role, daily_rate FROM employees;")
+        cur.execute("SELECT id, full_name, role, daily_rate FROM employees ORDER BY id ASC;")
         rows = cur.fetchall()
         
         if not rows:
