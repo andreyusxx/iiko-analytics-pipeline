@@ -189,3 +189,20 @@ def get_report_for_dates(start_date: str, end_date: str):
     cur.close()
     conn.close()
     return report
+
+def delete_employee_by_id(employee_id: int):
+    """Повністю видаляє працівника та його зміни з бази даних"""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        # Спочатку видаляємо пов'язані зміни, щоб уникнути конфліктів Foreign Key
+        cur.execute("DELETE FROM staff_shifts WHERE employee_id = %s;", (employee_id,))
+        # Потім видаляємо самого працівника
+        cur.execute("DELETE FROM employees WHERE id = %s;", (employee_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cur.close()
+        conn.close()
