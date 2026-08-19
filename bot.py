@@ -331,7 +331,7 @@ async def process_ai_question(message: types.Message, state: FSMContext):
     try:
         # 1. Генерація SQL за допомогою суворої системної інструкції для Llama-3.3
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system", 
@@ -362,7 +362,7 @@ async def process_ai_question(message: types.Message, state: FSMContext):
         
         # 3. Формування відповіді для користувача
         summary_response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system", 
