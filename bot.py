@@ -323,7 +323,7 @@ async def process_ai_question(message: types.Message, state: FSMContext):
     2. staff_shifts (id, employee_id, shift_date, is_paid, shift_rate)
     3. processed_files (file_name, processed_at)
     4. silver_sales (order_id, datetime, is_banquet, total_sum)
-    5. silver_sale_items (id, order_id, dish_name, name, quantity)
+    5. silver_sale_items (id, order_id, dish_id, name, quantity)
     6. gold_dish_performance (name, dish_id, orders_count, total_revenue, total_sold_quantity)
     7. gold_sales_summary (sale_date, is_banquet, total_orders, daily_revenue, average_check)
     """
