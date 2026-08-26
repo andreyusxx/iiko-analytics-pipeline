@@ -1,7 +1,9 @@
 import os
+import boto3
 from dotenv import load_dotenv
 import requests
 import json
+from datetime import datetime
 
 # Змушуємо Python прочитати твій файл .env
 load_dotenv()
@@ -11,6 +13,20 @@ BASE_URL = "https://api-eu.syrve.live"
 
 # БЕРЕМО САМЕ ДОВГИЙ КЛЮЧ З .env, А НЕ ЛОГІН!
 API_KEY = os.getenv("SYRVE_API_KEY")
+
+R2_ENDPOINT = os.getenv("R2_ENDPOINT_URL")
+R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY_ID")
+R2_SECRET_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
+R2_BUCKET = os.getenv("R2_BUCKET_NAME", "iiko-data-lake-raw")
+
+def get_s3_client():
+    """Створює клієнт для роботи з Cloudflare R2."""
+    return boto3.client(
+        's3',
+        endpoint_url=R2_ENDPOINT,
+        aws_access_key_id=R2_ACCESS_KEY,
+        aws_secret_access_key=R2_SECRET_KEY
+    )
 
 def fetch_syrve_data_to_bronze():
     """Функція підключається до Syrve API, отримує токен, 
@@ -62,11 +78,21 @@ def fetch_syrve_data_to_bronze():
         
     menu_data = menu_response.json()
     
-    # Тут у майбутньому ми збережемо menu_data у Cloudflare R2 (Bronze шар)
-    print(f"Успішно завантажено меню. Кількість категорій/товарів: {len(menu_data.get('groups', []))}")
+    print("Крок 4: Збереження даних у Bronze шар (Cloudflare R2)...")
+    # Генеруємо ім'я файлу з поточною датою та часом
+    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"syrve/menu/menu_{current_time}.json"
     
-    # Повертаємо успішний статус або зберігаємо файли
+    # Підключаємося до R2 і відправляємо файл
+    s3 = get_s3_client()
+    s3.put_object(
+        Bucket=R2_BUCKET,
+        Key=filename,
+        Body=json.dumps(menu_data, ensure_ascii=False), # Конвертуємо словник назад у текст
+        ContentType="application/json"
+    )
+    
+    print(f"Успіх! Файл збережено у бакет '{R2_BUCKET}' під назвою '{filename}'")
     return "Bronze extraction completed successfully"
-
 if __name__ == "__main__":
     fetch_syrve_data_to_bronze()
