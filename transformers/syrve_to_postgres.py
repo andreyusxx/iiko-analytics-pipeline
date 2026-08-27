@@ -2,80 +2,86 @@ import os
 import json
 import boto3
 import pandas as pd
-from sqlalchemy import create_engine
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
-# Завантажуємо змінні з .env
 load_dotenv()
 
-# Налаштування Cloudflare R2
+# Налаштування підключення до Neon та R2
+DATABASE_URL = os.getenv("DATABASE_URL")
 R2_ENDPOINT = os.getenv("R2_ENDPOINT_URL")
 R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
 R2_BUCKET = os.getenv("R2_BUCKET_NAME", "iiko-data-lake-raw")
 
-# Беремо готове посилання на хмарну базу Neon
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-def get_s3_client():
-    """Створюємо клієнт для підключення до бакета."""
-    return boto3.client(
+def process_and_load_menu():
+    print("Крок 1: Підключення до Cloudflare R2 та пошук найсвіжішого файлу...")
+    s3 = boto3.client(
         's3',
         endpoint_url=R2_ENDPOINT,
         aws_access_key_id=R2_ACCESS_KEY,
         aws_secret_access_key=R2_SECRET_KEY
     )
-
-def process_and_load_menu():
-    print("Крок 1: Підключення до Cloudflare R2 та пошук найсвіжішого файлу...")
-    s3 = get_s3_client()
     
     response = s3.list_objects_v2(Bucket=R2_BUCKET, Prefix="syrve/menu/")
-    if 'Contents' not in response:
-        raise Exception("У бакеті немає жодного файлу з меню!")
+    files = response.get('Contents', [])
+    
+    if not files:
+        print("Файлів у бакеті не знайдено!")
+        return
         
-    all_files = response['Contents']
-    latest_file = sorted(all_files, key=lambda x: x['LastModified'])[-1]
-    file_key = latest_file['Key']
-    print(f"Знайдено найсвіжіший файл: {file_key}")
+    # Шукаємо найсвіжіший файл (включно з новими custom_menu)
+    latest_file = max(files, key=lambda x: x['LastModified'])['Key']
+    print(f"Знайдено найсвіжіший файл: {latest_file}")
     
     print("Крок 2: Завантаження та читання JSON-файлу...")
-    file_obj = s3.get_object(Bucket=R2_BUCKET, Key=file_key)
-    file_content = file_obj['Body'].read().decode('utf-8')
-    menu_data = json.loads(file_content)
+    obj = s3.get_object(Bucket=R2_BUCKET, Key=latest_file)
+    data = json.loads(obj['Body'].read().decode('utf-8'))
     
-    print("Крок 3: Перетворення JSON на плоскі таблиці (Pandas)...")
-    df_groups = pd.DataFrame(menu_data.get('groups', []))
-    df_products = pd.DataFrame(menu_data.get('products', []))
-    print(f"Оброблено категорій: {len(df_groups)}. Оброблено товарів: {len(df_products)}.")
-    categories_cols = ['id', 'name', 'parentGroup', 'isIncludedInMenu', 'isDeleted']
-    df_groups = df_groups[categories_cols]
+    print("Крок 3: Перетворення структури API v2 на таблиці...")
     
-    products_cols = ['id', 'name', 'groupId', 'code', 'type', 'weight', 'measureUnit', 'sizePrices', 'isDeleted']
-    df_products = df_products[products_cols]
-    # ----------------------------------------------------
+    # У новій структурі категорії лежать у productCategories та itemCategories
+    product_categories = data.get('productCategories', [])
     
-    print(f"Оброблено категорій: {len(df_groups)}. Оброблено товарів: {len(df_products)}.")
+    # Збираємо всі категорії та товари з вкладених itemCategories
+    all_items = []
+    nested_categories = []
     
-    print("Крок 3.2: Перетворення вкладених списків та словників на текст...")
-    def serialize_complex_types(df):
-        for col in df.columns:
-            df[col] = df[col].apply(
-                lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (dict, list)) else x
-            )
-        return df
+    # Якщо структура містить itemCategories усередині
+    if 'itemCategories' in data:
+        for cat in data['itemCategories']:
+            nested_categories.append({
+                "id": cat.get("id"),
+                "name": cat.get("name"),
+                "description": cat.get("description", "")
+            })
+            for item in cat.get("items", []):
+                item_flat = {
+                    "id": item.get("id"),
+                    "sku": item.get("sku"),
+                    "name": item.get("name"),
+                    "description": item.get("description", ""),
+                    "category_name": cat.get("name")
+                }
+                # Дістаємо ціну з цінників, якщо вона є
+                prices = item.get("prices", [])
+                if prices:
+                    item_flat["price"] = prices[0].get("price")
+                all_items.append(item_flat)
 
-    df_groups = serialize_complex_types(df_groups)
-    df_products = serialize_complex_types(df_products)
+    df_categories = pd.DataFrame(nested_categories)
+    df_items = pd.DataFrame(all_items)
+    df_categories = pd.DataFrame(nested_categories)
+    print(f"Оброблено категорій: {len(df_categories)}. Оброблено товарів: {len(df_items)}.")
     
     print("Крок 4: Підключення до хмарного PostgreSQL (Neon) та запис даних...")
     engine = create_engine(DATABASE_URL)
     
-    df_groups.to_sql('syrve_categories', engine, if_exists='replace', index=False)
-    df_products.to_sql('syrve_products', engine, if_exists='replace', index=False)
+    # Записуємо у Silver шар бази даних
+    df_categories.to_sql('syrve_categories', engine, if_exists='replace', index=False)
+    df_items.to_sql('syrve_products', engine, if_exists='replace', index=False)
     
-    print("Успіх! Усі дані успішно завантажені у PostgreSQL (Silver шар).")
-
+    print("Успіх! Усі дані зовнішнього меню успішно завантажені у PostgreSQL (Silver шар).")
 
 if __name__ == "__main__":
     process_and_load_menu()
