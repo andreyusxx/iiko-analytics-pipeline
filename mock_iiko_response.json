@@ -1,8 +1,0 @@
-{
-  "supper_date": "2026-07-30",
-  "transactions": [
-    {"check_id": 101, "item": "Кальян Darkside", "category": "Кальяни", "price": 450, "employee": "Андрій"},
-    {"check_id": 102, "item": "Чай Ерл Грей", "category": "Бар", "price": 120, "employee": "Олег"},
-    {"check_id": 103, "item": "Кальян Tangiers", "category": "Кальяни", "price": 500, "employee": "Андрій"}
-  ]
-}

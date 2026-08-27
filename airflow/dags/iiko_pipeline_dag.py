@@ -5,11 +5,12 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.exceptions import AirflowException
+
 # Додаємо шлях до нашого проєкту в системний шлях Python всередині контейнера
 sys.path.insert(0, '/opt/airflow/project')
 
-# Імпортуємо твої наявні функції
-from generator.generate_mock_data import generate_and_upload_sales
+# Імпортуємо нові функції для роботи з реальним Syrve API та наступні шари
+from extractors.syrve_extractor import fetch_syrve_data_to_bronze  # Замінили моки на реальний екстрактор
 from transform_to_silver import run_incremental_etl
 from create_gold_layer import create_gold_views
 
@@ -20,6 +21,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
 }
+
 def check_data_quality():
     # Підключаємося до бази Neon через налаштоване з'єднання в Airflow
     hook = PostgresHook(postgres_conn_id='postgres_default')
@@ -50,20 +52,20 @@ def check_data_quality():
 with DAG(
     'iiko_restaurant_etl_pipeline',
     default_args=default_args,
-    description='Пайплайн ресторанної аналітики iiko: Bronze -> Silver -> Gold',
-    schedule_interval='@hourly',  # Запуск щогодини (або можна змінити)
+    description='Пайплайн ресторанної аналітики Syrve: Bronze -> Silver -> Gold',
+    schedule_interval='@hourly',  # Запуск щогодини
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    tags=['iiko', 'etl', 'restaurant'],
+    tags=['syrve', 'etl', 'restaurant'],
 ) as dag:
 
-    # Завдання 1: Генерація та завантаження мокових даних у Bronze (R2)
-    t1_generate_bronze = PythonOperator(
-        task_id='generate_and_upload_bronze',
-        python_callable=generate_and_upload_sales,
+    # Завдання 1: Запит до реального Syrve API та збереження сирих даних у Bronze (Cloudflare / Data Lake)
+    t1_extract_bronze = PythonOperator(
+        task_id='extract_syrve_to_bronze',
+        python_callable=fetch_syrve_data_to_bronze,
     )
 
-    # Завдання 2: Інкрементальний ETL у Silver (PostgreSQL)
+    # Завдання 2: Інкрементальний ETL у Silver (PostgreSQL / Neon)
     t2_transform_silver = PythonOperator(
          task_id='run_silver_etl',
          python_callable=run_incremental_etl,
@@ -73,7 +75,7 @@ with DAG(
     t3_create_gold = PythonOperator(
          task_id='refresh_gold_views',
          python_callable=create_gold_views,
-     )
+    )
 
     # Завдання 4: Перевірка якості даних
     t4_check_quality = PythonOperator(
@@ -81,4 +83,4 @@ with DAG(
         python_callable=check_data_quality,
     )
 
-    t1_generate_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality
+    t1_extract_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality

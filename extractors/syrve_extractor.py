@@ -18,7 +18,7 @@ R2_ENDPOINT = os.getenv("R2_ENDPOINT_URL")
 R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
 R2_BUCKET = os.getenv("R2_BUCKET_NAME", "iiko-data-lake-raw")
-
+EXTERNAL_MENU_ID = "10963"
 def get_s3_client():
     """Створює клієнт для роботи з Cloudflare R2."""
     return boto3.client(
@@ -49,50 +49,47 @@ def fetch_syrve_data_to_bronze():
         "Content-Type": "application/json"
     }
     
-    print("Крок 2: Отримання списку ресторанів (організацій)...")
-    org_response = requests.post(
-        f"{BASE_URL}/api/1/organizations",
+    print("Крок 2: Отримання ID ресторану...")
+    org_response = requests.post(f"{BASE_URL}/api/1/organizations", headers=headers, json={"organizationIds": []})
+    orgs = org_response.json().get("organizations", [])
+    
+    if not orgs:
+        print("Організацій не знайдено!")
+        return
+
+    org_id = orgs[0]["id"]
+    print(f" -> Знайдено ресторан ID: {org_id}")
+    
+    print(f"Крок 3: Завантаження зовнішнього меню (ID: {EXTERNAL_MENU_ID}) через API v2...")
+    
+    menu_resp = requests.post(
+        f"{BASE_URL}/api/2/menu/by_id",
         headers=headers,
-        json={"organizationIds": []}
+        json={
+            "externalMenuId": EXTERNAL_MENU_ID,
+            "organizationIds": [org_id]
+        }
     )
     
-    if org_response.status_code != 200:
-        raise Exception(f"Помилка отримання організації: {org_response.text}")
+    print(f"Статус-код запиту меню: {menu_resp.status_code}")
+    
+    if menu_resp.status_code != 200:
+        print(f"Помилка API: {menu_resp.text}")
+        return
         
-    organizations = org_response.json().get("organizations", [])
-    if not organizations:
-        raise Exception("Не знайдено жодної організації для цього ключа!")
-        
-    org_id = organizations[0]["id"]
-    print(f"Знайдено організацію з ID: {org_id}")
+    menu_data = menu_resp.json()
     
-    print("Крок 3: Завантаження номенклатури (меню)...")
-    menu_response = requests.post(
-        f"{BASE_URL}/api/1/nomenclature",
-        headers=headers,
-        json={"organizationId": org_id}
-    )
+    filename = f"syrve/menu/custom_menu_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    print(f"Крок 4: Збереження сирого файлу зовнішнього меню в R2...")
     
-    if menu_response.status_code != 200:
-        raise Exception(f"Помилка завантаження меню: {menu_response.text}")
-        
-    menu_data = menu_response.json()
-    
-    print("Крок 4: Збереження даних у Bronze шар (Cloudflare R2)...")
-    # Генеруємо ім'я файлу з поточною датою та часом
-    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"syrve/menu/menu_{current_time}.json"
-    
-    # Підключаємося до R2 і відправляємо файл
     s3 = get_s3_client()
     s3.put_object(
         Bucket=R2_BUCKET,
         Key=filename,
-        Body=json.dumps(menu_data, ensure_ascii=False), # Конвертуємо словник назад у текст
+        Body=json.dumps(menu_data, ensure_ascii=False),
         ContentType="application/json"
     )
+    print(f"Успіх! Файл збережено: '{filename}'")
     
-    print(f"Успіх! Файл збережено у бакет '{R2_BUCKET}' під назвою '{filename}'")
-    return "Bronze extraction completed successfully"
 if __name__ == "__main__":
     fetch_syrve_data_to_bronze()
