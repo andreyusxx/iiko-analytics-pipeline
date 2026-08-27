@@ -50,19 +50,26 @@ def process_and_load_menu():
     # Якщо структура містить itemCategories усередині
     if 'itemCategories' in data:
         for cat in data['itemCategories']:
+            cat_id = cat.get("id")
+            cat_name = cat.get("name")
+            
             nested_categories.append({
-                "id": cat.get("id"),
-                "name": cat.get("name"),
+                "id": cat_id,
+                "name": cat_name,
                 "description": cat.get("description", "")
             })
             for item in cat.get("items", []):
+                item_id = item.get("id") or item.get("itemId") or item.get("sku")
+                
                 item_flat = {
-                    "id": item.get("id"),
+                    "id": item_id,
                     "sku": item.get("sku"),
                     "name": item.get("name"),
                     "description": item.get("description", ""),
-                    "category_name": cat.get("name")
+                    "category_id": cat_id,      # Зберігаємо ID категорії для майбутнього JOIN
+                    "category_name": cat_name   # Ім'я залишаємо для зручності читання
                 }
+                
                 # Дістаємо ціну з цінників, якщо вона є
                 prices = item.get("prices", [])
                 if prices:
