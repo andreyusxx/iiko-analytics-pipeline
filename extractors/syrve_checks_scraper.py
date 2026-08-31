@@ -9,7 +9,7 @@ from playwright.sync_api import sync_playwright
 load_dotenv()
 
 # Дані для входу та R2
-BASE_URL = "https://svoi56.syrye.app"
+BASE_URL = "https://svoi56.syrve.app"
 R2_ENDPOINT = os.getenv("R2_ENDPOINT_URL")
 R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
