@@ -73,6 +73,9 @@ def process_new_files():
 
     all_r2_files = [obj["Key"] for obj in response["Contents"] if obj["Key"].endswith(".json")]
 
+    if not all_r2_files:
+        print("✅ Немає файлів для обробки.")
+        return
     # Отримуємо список вже оброблених файлів із бази даних
     with conn.cursor() as cur:
         cur.execute("SELECT file_name FROM processed_files;")
@@ -108,6 +111,7 @@ def process_new_files():
         inserted_count = 0
         with conn.cursor() as cur:
             for item in checks_list:
+                cur.execute("DELETE FROM silver_guest_checks WHERE source_file = %s;", (file_key,))
                 dish_name = item.get("dishName")
 
                 if dish_name in ("Гарний настрій"):
