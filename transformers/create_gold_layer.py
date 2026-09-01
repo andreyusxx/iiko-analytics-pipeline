@@ -56,6 +56,21 @@ def build_gold_layer():
             ORDER BY revenue_generated DESC;
         """)
 
+        print("Створення вітрини: Виручка за категоріями (gold_revenue_by_category)...")
+        cur.execute("""
+            DROP TABLE IF EXISTS gold_revenue_by_category;
+            CREATE TABLE gold_revenue_by_category AS
+            SELECT 
+                COALESCE(category_name, 'Без категорії') AS category_name,
+                COUNT(id) AS items_sold,
+                SUM(dish_sum) AS total_revenue
+            FROM silver_guest_checks
+            WHERE dish_name IS NOT NULL 
+              AND dish_name NOT IN ('Гарний настрій')
+            GROUP BY category_name
+            ORDER BY total_revenue DESC;
+        """)
+
     conn.commit()
     conn.close()
     print("🚀 Gold-шар успішно побудовано! Вітрини готові до підключення в Metabase.")
