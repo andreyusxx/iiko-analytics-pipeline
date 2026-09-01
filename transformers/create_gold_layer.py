@@ -31,13 +31,14 @@ def build_gold_layer():
 
         print("Створення вітрини: ТОП страв (gold_top_dishes)...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS gold_top_dishes AS
+            DROP TABLE IF EXISTS gold_top_dishes AS
             SELECT 
                 dish_name,
                 COUNT(id) AS times_ordered,
                 SUM(dish_sum) AS total_revenue
             FROM silver_guest_checks
             WHERE dish_name IS NOT NULL
+              AND dish_name NOT IN ('Гарний настрій')
             GROUP BY dish_name
             ORDER BY times_ordered DESC;
         """)

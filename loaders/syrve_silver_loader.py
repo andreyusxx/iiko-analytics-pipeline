@@ -109,9 +109,9 @@ def process_new_files():
             for item in checks_list:
                 dish_name = item.get("dishName")
 
-                if dish_name in ("Гарний настрій", "Контейнер"):
+                if dish_name in ("Гарний настрій"):
                     continue
-                
+
                 # Очистка та приведення типів (Silver шар трансформація)
                 uniq_order_id = item.get("uniqOrderIdId")
                 order_num = item.get("orderNum")
