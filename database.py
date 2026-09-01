@@ -17,7 +17,7 @@ def add_employee(full_name: str, role: str, daily_rate: float):
     cur = conn.cursor()
     try:
         cur.execute(
-            "INSERT INTO employees (full_name, role, daily_rate) VALUES (%s, %s, %s);",
+            "INSERT INTO syrve_employees (full_name, position, hourly_rate) VALUES (%s, %s, %s);",
             (full_name, role, daily_rate)
         )
         conn.commit()
@@ -35,7 +35,7 @@ def register_shift(employee_id: int):
     cur = conn.cursor()
     try:
         # Спочатку отримуємо поточну ставку працівника
-        cur.execute("SELECT daily_rate FROM employees WHERE id = %s;", (employee_id,))
+        cur.execute("SELECT hourly_rate FROM syrve_employees WHERE id = %s;", (employee_id,))
         emp_row = cur.fetchone()
         if not emp_row:
             raise ValueError("Працівника не знайдено")
@@ -59,7 +59,7 @@ def update_employee(employee_id: int, full_name: str, role: str, daily_rate: flo
     cur = conn.cursor()
     try:
         cur.execute(
-            "UPDATE employees SET full_name = %s, role = %s, daily_rate = %s WHERE id = %s;",
+            "UPDATE syrve_employees SET full_name = %s, position = %s, hourly_rate = %s WHERE id = %s;",
             (full_name, role, daily_rate, employee_id)
         )
         # Перевіряємо, чи був оновлений хоча б один рядок
@@ -93,7 +93,7 @@ def toggle_shift(employee_id: int):
             status = "видалено"
         else:
             # Отримуємо поточну ставку працівника на момент виходу
-            cur.execute("SELECT daily_rate FROM employees WHERE id = %s;", (employee_id,))
+            cur.execute("SELECT hourly_rate FROM syrve_employees WHERE id = %s;", (employee_id,))
             emp_row = cur.fetchone()
             if not emp_row:
                 raise ValueError("Працівника не знайдено")
@@ -153,9 +153,9 @@ def get_today_shifts():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT e.full_name, e.role 
+        SELECT e.full_name, e.position 
         FROM staff_shifts s
-        JOIN employees e ON s.employee_id = e.id
+        JOIN syrve_employees e ON s.employee_id = e.id
         WHERE s.shift_date = CURRENT_DATE;
     """)
     rows = cur.fetchall()
@@ -168,9 +168,9 @@ def get_report_for_dates(start_date: str, end_date: str):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT s.id, e.full_name, e.role, s.shift_date, s.shift_rate, s.is_paid
+        SELECT s.id, e.full_name, e.position, s.shift_date, s.shift_rate, s.is_paid
         FROM staff_shifts s
-        JOIN employees e ON s.employee_id = e.id
+        JOIN syrve_employees e ON s.employee_id = e.id
         WHERE s.shift_date BETWEEN %s AND %s;
     """, (start_date, end_date))
     rows = cur.fetchall()
@@ -180,7 +180,7 @@ def get_report_for_dates(start_date: str, end_date: str):
         report.append({
             "shift_id": row[0],
             "employee_name": row[1],
-            "role": row[2],
+            "position": row[2],
             "shift_date": str(row[3]),
             "shift_rate": float(row[4]) if row[4] is not None else 0.0,
             "is_paid": row[5]
@@ -198,7 +198,7 @@ def delete_employee_by_id(employee_id: int):
         # Спочатку видаляємо пов'язані зміни, щоб уникнути конфліктів Foreign Key
         cur.execute("DELETE FROM staff_shifts WHERE employee_id = %s;", (employee_id,))
         # Потім видаляємо самого працівника
-        cur.execute("DELETE FROM employees WHERE id = %s;", (employee_id,))
+        cur.execute("DELETE FROM syrve_employees WHERE id = %s;", (employee_id,))
         conn.commit()
     except Exception as e:
         conn.rollback()

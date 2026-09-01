@@ -71,7 +71,7 @@ async def show_employees(message: types.Message):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT id, full_name, role, daily_rate FROM employees ORDER BY id ASC;")
+        cur.execute("SELECT full_name, position, hourly_rate FROM syrve_employees;")
         rows = cur.fetchall()
         
         if not rows:
@@ -82,7 +82,7 @@ async def show_employees(message: types.Message):
         keyboard = InlineKeyboardBuilder()
         for row in rows:
             emp_id, name, role, rate = row
-            response += f"ID: {emp_id} | {name} ({role}) — Ставка: {rate} грн/день\n"
+            response += f"{name} ({role}) — Ставка: {rate} грн/день\n"
 
             keyboard.button(
                 text=f"🗑 Видалити {name.split()[0]}", # Скоротимо текст кнопки для зручності
@@ -112,14 +112,14 @@ async def start_add_employee(message: types.Message, state: FSMContext):
 async def process_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(AddEmployee.role)
-    await message.answer("Введи посаду (наприклад: hookah, waiter, bartender, admin):")
+    await message.answer("Введи посаду:")
 
 # Крок 3: Отримання посади та запит ставки
 @dp.message(AddEmployee.role)
 async def process_role(message: types.Message, state: FSMContext):
     await state.update_data(role=message.text)
     await state.set_state(AddEmployee.rate)
-    await message.answer("Введи денну ставку (тільки число, наприклад 1500):")
+    await message.answer("Введи денну ставку:")
 
 # Крок 4: Отримання ставки і збереження в Neon
 @dp.message(AddEmployee.rate)
@@ -198,7 +198,7 @@ async def process_update_rate(message: types.Message, state: FSMContext):
 async def admin_shift_menu(message: types.Message):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, full_name FROM employees;")
+    cur.execute("SELECT full_name FROM employees;")
     rows = cur.fetchall()
     
     # Створюємо клавіатуру з іменами
@@ -319,13 +319,16 @@ async def process_ai_question(message: types.Message, state: FSMContext):
     # Описуємо схему бази даних для LLM, щоб вона знала структуру
     db_schema = """
     Tables and Views in public schema:
-    1. employees (id, full_name, role, daily_rate)
+    1. syrve_employees (id, full_name, position, hourly_rate)
     2. staff_shifts (id, employee_id, shift_date, is_paid, shift_rate)
     3. processed_files (file_name, processed_at)
-    4. silver_sales (order_id, datetime, is_banquet, total_sum)
-    5. silver_sale_items (id, order_id, dish_id, name, quantity)
-    6. gold_dish_performance (name, dish_id, orders_count, total_revenue, total_sold_quantity)
-    7. gold_sales_summary (sale_date, is_banquet, total_orders, daily_revenue, average_check)
+    4. silver_guest_checks (id, uniq_order_id, order_num, session_num, table_num, cashier, dish_name, dish_sum, discount_sum, open_time, close_time, pay_types, category_name, source_file)
+    5. syrve_categories (id, name, description)
+    6. syrve_products (id, sku, name, description, category_id, category_name)
+    7. gold_daily_sales (sale_date, total_orders, total_sold_items, gross_revenue, total_discounts, net_revenue)
+    8. gold_top_dishes (dish_name, times_ordered, total_revenue)
+    9. gold_cashier_performance (cashier, orders_handled, revenue_generated)
+    10. gold_revenue_by_category (category_name, items_sold, total_revenue)
     """
     
     try:
