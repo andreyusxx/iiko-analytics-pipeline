@@ -9,10 +9,10 @@ from airflow.exceptions import AirflowException
 # Додаємо шлях до нашого проєкту в системний шлях Python всередині контейнера
 sys.path.insert(0, '/opt/airflow/project')
 
-# Імпортуємо нові функції для роботи з реальним Syrve API та наступні шари
-from extractors.syrve_extractor import fetch_syrve_data_to_bronze  # Замінили моки на реальний екстрактор
-from transform_to_silver import run_incremental_etl
-from create_gold_layer import create_gold_views
+# Імпортуємо актуальні функції для пайплайну
+from extractors.syrve_сhecks_scraper import intercept_checks_by_date  
+from loaders.syrve_silver_loader import process_new_files  
+from transformers.create_gold_layer import build_gold_layer 
 
 default_args = {
     'owner': 'andrii',
@@ -26,26 +26,12 @@ def check_data_quality():
     # Підключаємося до бази Neon через налаштоване з'єднання в Airflow
     hook = PostgresHook(postgres_conn_id='postgres_default')
     
-    # Перевірка 1: Чи є від'ємні або нульові чеки
+    # Перевірка 1: Чи є від'ємні або нульові чеки в silver_guest_checks
     records_negative = hook.get_first(
-        "SELECT COUNT(*) FROM public.silver_sales WHERE total_sum <= 0;"
+        "SELECT COUNT(*) FROM public.silver_guest_checks WHERE dish_sum < 0;"
     )
     if records_negative[0] > 0:
-        raise AirflowException(f"Якість даних порушено! Знайдено {records_negative[0]} чеків з від'ємною або нульовою сумою.")
-
-    # Перевірка 2: Чи є дублікати order_id
-    records_duplicates = hook.get_first(
-        """
-        SELECT COUNT(*) FROM (
-            SELECT order_id, COUNT(*) 
-            FROM public.silver_sales 
-            GROUP BY order_id 
-            HAVING COUNT(*) > 1
-        ) t;
-        """
-    )
-    if records_duplicates[0] > 0:
-        raise AirflowException(f"Якість даних порушено! Знайдено {records_duplicates[0]} дублікатів order_id.")
+        raise AirflowException(f"Якість даних порушено! Знайдено {records_negative[0]} позицій з від'ємною сумою.")
 
     print("Усі перевірки якості даних успішно пройдено!")
 
@@ -59,22 +45,22 @@ with DAG(
     tags=['syrve', 'etl', 'restaurant'],
 ) as dag:
 
-    # Завдання 1: Запит до реального Syrve API та збереження сирих даних у Bronze (Cloudflare / Data Lake)
+    # Завдання 1: Запит до Syrve API та збереження сирих даних у Bronze (Cloudflare R2)
     t1_extract_bronze = PythonOperator(
         task_id='extract_syrve_to_bronze',
-        python_callable=fetch_syrve_data_to_bronze,
+        python_callable=intercept_checks_by_date,
     )
 
-    # Завдання 2: Інкрементальний ETL у Silver (PostgreSQL / Neon)
+    # Завдання 2: Очищення та збагачення даних у Silver (PostgreSQL / Neon) з категоріями
     t2_transform_silver = PythonOperator(
          task_id='run_silver_etl',
-         python_callable=run_incremental_etl,
+         python_callable=process_new_files,
     )
 
-    # Завдання 3: Оновлення вітрин Gold шару
+    # Завдання 3: Оновлення вітрин Gold шару (включно з категоріями)
     t3_create_gold = PythonOperator(
          task_id='refresh_gold_views',
-         python_callable=create_gold_views,
+         python_callable=build_gold_layer,
     )
 
     # Завдання 4: Перевірка якості даних
@@ -83,4 +69,5 @@ with DAG(
         python_callable=check_data_quality,
     )
 
+    # Послідовність виконання задач у DAG
     t1_extract_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality

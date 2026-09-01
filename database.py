@@ -1,4 +1,5 @@
 import os
+import uuid
 import psycopg2
 from dotenv import load_dotenv
 
@@ -16,15 +17,17 @@ def add_employee(full_name: str, role: str, daily_rate: float):
     conn = get_connection()
     cur = conn.cursor()
     try:
+        new_id = str(uuid.uuid4())[:8]
         cur.execute(
-            "INSERT INTO syrve_employees (full_name, position, hourly_rate) VALUES (%s, %s, %s);",
-            (full_name, role, daily_rate)
+            "INSERT INTO syrve_employees (id,full_name, position, hourly_rate) VALUES (%s, %s, %s, %s);",
+            (new_id, full_name, role, daily_rate)
         )
         conn.commit()
         print(f"Працівника {full_name} успішно додано!")
     except Exception as e:
         conn.rollback()
         print(f"Помилка при додаванні працівника: {e}")
+        raise e
     finally:
         cur.close()
         conn.close()
@@ -75,7 +78,7 @@ def update_employee(employee_id: int, full_name: str, role: str, daily_rate: flo
         cur.close()
         conn.close()
 
-def toggle_shift(employee_id: int):
+def toggle_shift(employee_id: str):
     """Додає або видаляє зміну для працівника на сьогодні"""
     conn = get_connection()
     cur = conn.cursor()
@@ -100,7 +103,7 @@ def toggle_shift(employee_id: int):
             current_rate = emp_row[0]
 
             # Якщо немає — додаємо
-            cur.execute("INSERT INTO staff_shifts (employee_id, shift_rate) VALUES (%s, %s);", (employee_id, current_rate))
+            cur.execute("INSERT INTO staff_shifts (employee_id, shift_rate, shift_date) VALUES (%s, %s, CURRENT_DATE);", (employee_id, current_rate))
             status = "додано"
             
         conn.commit()
@@ -120,7 +123,7 @@ def get_unpaid_shifts():
     cur.execute("""
         SELECT e.full_name, COUNT(s.id) as days_worked, SUM(s.shift_rate) as total_debt
         FROM staff_shifts s
-        JOIN employees e ON s.employee_id = e.id
+        JOIN syrve_employees e ON s.employee_id = e.id
         WHERE s.is_paid = FALSE
         GROUP BY e.full_name;
     """)
@@ -190,7 +193,7 @@ def get_report_for_dates(start_date: str, end_date: str):
     conn.close()
     return report
 
-def delete_employee_by_id(employee_id: int):
+def delete_employee_by_id(employee_id: str):
     """Повністю видаляє працівника та його зміни з бази даних"""
     conn = get_connection()
     cur = conn.cursor()

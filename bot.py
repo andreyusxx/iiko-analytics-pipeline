@@ -71,7 +71,7 @@ async def show_employees(message: types.Message):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT full_name, position, hourly_rate FROM syrve_employees;")
+        cur.execute("SELECT id, full_name, position, hourly_rate FROM syrve_employees;")
         rows = cur.fetchall()
         
         if not rows:
@@ -198,7 +198,7 @@ async def process_update_rate(message: types.Message, state: FSMContext):
 async def admin_shift_menu(message: types.Message):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT full_name FROM employees;")
+    cur.execute("SELECT id, full_name FROM syrve_employees;")
     rows = cur.fetchall()
     
     # Створюємо клавіатуру з іменами
@@ -214,7 +214,7 @@ async def admin_shift_menu(message: types.Message):
 # Обробка натискань на кнопки
 @dp.callback_query(F.data.startswith("toggle_"))
 async def callback_toggle(callback: types.CallbackQuery):
-    emp_id = int(callback.data.split("_")[1])
+    emp_id = callback.data.split("_")[1]
     status = toggle_shift(emp_id)
     
     # Оновлюємо повідомлення (коротка відповідь)
@@ -296,7 +296,7 @@ async def process_end_date(message: types.Message, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data.startswith("del_employee_"))
 async def callback_delete_employee(callback: types.CallbackQuery):
-    employee_id = int(callback.data.split("_")[2])
+    employee_id = callback.data.split("_")[2]
     
     try:
         delete_employee_by_id(employee_id)
