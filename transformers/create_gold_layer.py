@@ -31,7 +31,7 @@ def build_gold_layer():
 
         print("Створення вітрини: ТОП страв (gold_top_dishes)...")
         cur.execute("""
-            DROP TABLE IF EXISTS gold_top_dishes AS
+            CREATE TABLE IF NOT EXISTS gold_top_dishes AS
             SELECT 
                 dish_name,
                 COUNT(id) AS times_ordered,

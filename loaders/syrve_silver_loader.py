@@ -52,6 +52,7 @@ def init_db_tables(conn):
                 open_time TIMESTAMP,
                 close_time TIMESTAMP,
                 pay_types VARCHAR(255),
+                category_name VARCHAR(255),
                 source_file VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
@@ -139,11 +140,15 @@ def process_new_files():
                         uniq_order_id, order_num, session_num, table_num, 
                         cashier, dish_name, dish_sum, discount_sum, 
                         open_time, close_time, pay_types, source_file
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                            (SELECT category_name FROM syrve_products WHERE name = %s LIMIT 1),
+                            %s
+                    );
                 """, (
                     uniq_order_id, order_num, session_num, table_num,
                     cashier, dish_name, dish_sum, discount_sum,
-                    open_time, close_time, pay_types, file_key
+                    open_time, close_time, pay_types, dish_name, file_key
                 ))
                 inserted_count += 1
 
