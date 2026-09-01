@@ -10,7 +10,7 @@ from airflow.exceptions import AirflowException
 sys.path.insert(0, '/opt/airflow/project')
 
 # Імпортуємо актуальні функції для пайплайну
-from extractors.syrve_сhecks_scraper import intercept_checks_by_date  
+from extractors.syrve_checks_scraper import intercept_checks_by_date
 from loaders.syrve_silver_loader import process_new_files  
 from transformers.create_gold_layer import build_gold_layer 
 
