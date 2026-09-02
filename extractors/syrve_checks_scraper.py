@@ -15,6 +15,7 @@ R2_BUCKET = os.getenv("R2_BUCKET_NAME", "iiko-data-lake-raw")
 
 SYRVE_LOGIN = os.getenv("SYRVE_LOGIN")
 SYRVE_PASSWORD = os.getenv("SYRVE_PASSWORD")
+
 def get_s3_client():
     return boto3.client(
         's3',
@@ -25,9 +26,11 @@ def get_s3_client():
 
 def intercept_checks_by_date(target_date: str = None):
     if not target_date:
-        target_date = datetime.now().strftime("%Y-%m-%d")
+        default_date = datetime.now().strftime("%Y-%m-%d")
+        user_date = input(f"Введіть дату для вивантаження (у форматі YYYY-MM-DD) або натисніть Enter для поточної ({default_date}): ").strip()
+        target_date = user_date if user_date else default_date
         
-    print(f"-> Повністю автоматичний збір даних для дати: {target_date}")
+    print(f"-> Збір даних для дати: {target_date}")
 
     print("Крок 1: Запуск перехоплювача мережевих запитів...")
     with sync_playwright() as p:
@@ -54,23 +57,23 @@ def intercept_checks_by_date(target_date: str = None):
             print(f"Відкриваємо {BASE_URL}...")
             page.goto(BASE_URL, timeout=60000)
 
-            # --- АВТОМАТИЧНИЙ ВХІД (Замість ручного клікання) ---
-            # Увага: селектори (input[name='login'] тощо) треба буде підігнати під реальні поля твого сайту Syrve
+            # Автоматичний вхід
             print("Виконуємо автоавторизацію...")
-            page.fill("input[name='login']", SYRVE_LOGIN) # Селектор поля логіна
-            page.fill("input[name='password']", SYRVE_PASSWORD) # Селектор поля пароля
-            page.click("button[type='submit']") # Кнопка входу
+            page.fill("input[name='login']", SYRVE_LOGIN)
+            page.fill("input[name='password']", SYRVE_PASSWORD)
+            page.click("button[type='submit']")
             
-            # Чекаємо завантаження головної сторінки
             page.wait_for_load_timeout(5000)
 
+            # Переходимо на сторінку чеків
             page.goto(f"{BASE_URL}/till-shifts/index.html#/guestcheck", timeout=60000)
-
             page.wait_for_selector("input, .date-picker, app-date-picker", timeout=15000)
 
-            print(f"Чекаємо на формування звіту за дату {target_date}...")
-            # Робимо паузу на завантаження мережевого запиту
-            page.wait_for_timeout(10000)
+            print(f"\n[ІНСТРУКЦІЯ]:")
+            print(f"1. Вистав у фільтрі потрібну дату ({target_date}), щоб дані з'явилися на екрані.")
+            input("\nНатисни Enter у цьому терміналі, коли дані завантажаться в таблиці...")
+
+            page.wait_for_timeout(3000)
 
         except Exception as err:
             print(f"❌ Помилка під час автоматизації браузера: {err}")
@@ -78,8 +81,9 @@ def intercept_checks_by_date(target_date: str = None):
             browser.close()
 
         if not captured_json_data:
-            print("❌ Попередження: Не вдалося зловити JSON-дані звітів автоматично.")
+            print("❌ Попередження: Не вдалося зловити JSON-дані звітів.")
             return
+
         # Зберігаємо у R2
         filename = f"syrve/guest_checks/guestchecks_{target_date.replace('-', '')}.json"
         

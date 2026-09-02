@@ -139,20 +139,22 @@ def process_new_files():
                 pay_types = item.get("payTypes")
 
                 # Записуємо очищений рядок у Silver-таблицю
+                cur.execute("SELECT category_name FROM syrve_products WHERE name = %s LIMIT 1;", (dish_name,))
+                cat_row = cur.fetchone()
+                category_name = cat_row[0] if cat_row else None
+
                 cur.execute("""
                     INSERT INTO silver_guest_checks (
                         uniq_order_id, order_num, session_num, table_num, 
                         cashier, dish_name, dish_sum, discount_sum, 
-                        open_time, close_time, pay_types, source_file
+                        open_time, close_time, pay_types, category_name, source_file
                     ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                            (SELECT category_name FROM syrve_products WHERE name = %s LIMIT 1),
-                            %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     );
                 """, (
                     uniq_order_id, order_num, session_num, table_num,
                     cashier, dish_name, dish_sum, discount_sum,
-                    open_time, close_time, pay_types, dish_name, file_key
+                    open_time, close_time, pay_types, category_name, file_key
                 ))
                 inserted_count += 1
 
