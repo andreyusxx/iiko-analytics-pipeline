@@ -51,6 +51,7 @@ def init_db_tables(conn):
                 discount_sum NUMERIC(10, 2),
                 open_time TIMESTAMP,
                 close_time TIMESTAMP,
+                open_date DATE,
                 pay_types VARCHAR(255),
                 category_name VARCHAR(255),
                 source_file VARCHAR(255),
@@ -110,8 +111,10 @@ def process_new_files():
 
         inserted_count = 0
         with conn.cursor() as cur:
+            # Очищаємо старі дані для цього файлу ОДИН РАЗ перед вставкою нових
+            cur.execute("DELETE FROM silver_guest_checks WHERE source_file = %s;", (file_key,))
+
             for item in checks_list:
-                cur.execute("DELETE FROM silver_guest_checks WHERE source_file = %s;", (file_key,))
                 dish_name = item.get("dishName")
 
                 if dish_name in ("Гарний настрій"):
@@ -123,7 +126,6 @@ def process_new_files():
                 session_num = item.get("sessionNum")
                 table_num = item.get("tableNum")
                 cashier = item.get("cashier")
-                dish_name = item.get("dishName")
                 
                 # Числові поля безпечно переводимо в float/numeric
                 dish_sum = float(item.get("dishSumInt", 0) or 0)
@@ -135,10 +137,18 @@ def process_new_files():
                 
                 open_time = datetime.fromisoformat(open_time_str) if open_time_str else None
                 close_time = datetime.fromisoformat(close_time_str.split(".")[0]) if close_time_str else None
-                
+
+                open_date_str = item.get("openDateTyped")
+                if open_date_str:
+                    try:
+                        open_date = datetime.strptime(open_date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        open_date = open_time.date() if open_time else None
+                else:
+                    open_date = open_time.date() if open_time else None
                 pay_types = item.get("payTypes")
 
-                # Записуємо очищений рядок у Silver-таблицю
+                # Шукаємо категорію страви
                 cur.execute("SELECT category_name FROM syrve_products WHERE name = %s LIMIT 1;", (dish_name,))
                 cat_row = cur.fetchone()
                 category_name = cat_row[0] if cat_row else None
@@ -147,14 +157,14 @@ def process_new_files():
                     INSERT INTO silver_guest_checks (
                         uniq_order_id, order_num, session_num, table_num, 
                         cashier, dish_name, dish_sum, discount_sum, 
-                        open_time, close_time, pay_types, category_name, source_file
+                        open_time, close_time, open_date, pay_types, category_name, source_file
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     );
                 """, (
                     uniq_order_id, order_num, session_num, table_num,
                     cashier, dish_name, dish_sum, discount_sum,
-                    open_time, close_time, pay_types, category_name, file_key
+                    open_time, close_time, open_date, pay_types, category_name, file_key
                 ))
                 inserted_count += 1
 

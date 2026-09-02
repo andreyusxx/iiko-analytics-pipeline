@@ -16,22 +16,25 @@ def build_gold_layer():
     with conn.cursor() as cur:
         print("Створення вітрини: Денні продажі (gold_daily_sales)...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS gold_daily_sales AS
+            DROP TABLE IF EXISTS gold_daily_sales;
+            CREATE TABLE gold_daily_sales AS
             SELECT 
-                DATE(open_time) AS sale_date,
+                open_date AS sale_date,
                 COUNT(DISTINCT uniq_order_id) AS total_orders,
                 COUNT(id) AS total_sold_items,
                 SUM(dish_sum) AS gross_revenue,
                 SUM(discount_sum) AS total_discounts,
                 SUM(dish_sum - discount_sum) AS net_revenue
             FROM silver_guest_checks
-            WHERE open_time IS NOT NULL
-            GROUP BY DATE(open_time);
+            WHERE open_date IS NOT NULL
+            GROUP BY open_date
+            ORDER BY sale_date;
         """)
 
         print("Створення вітрини: ТОП страв (gold_top_dishes)...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS gold_top_dishes AS
+            DROP TABLE IF EXISTS gold_top_dishes;
+            CREATE TABLE gold_top_dishes AS
             SELECT 
                 dish_name,
                 COUNT(id) AS times_ordered,
@@ -45,7 +48,8 @@ def build_gold_layer():
 
         print("Створення вітрини: Ефективність касирів (gold_cashier_performance)...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS gold_cashier_performance AS
+            DROP TABLE IF EXISTS gold_cashier_performance;
+            CREATE TABLE gold_cashier_performance AS
             SELECT 
                 cashier,
                 COUNT(DISTINCT uniq_order_id) AS orders_handled,
