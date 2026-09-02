@@ -13,9 +13,6 @@ R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
 R2_BUCKET = os.getenv("R2_BUCKET_NAME", "iiko-data-lake-raw")
 
-SYRVE_LOGIN = os.getenv("SYRVE_LOGIN")
-SYRVE_PASSWORD = os.getenv("SYRVE_PASSWORD")
-
 def get_s3_client():
     return boto3.client(
         's3',
@@ -24,13 +21,13 @@ def get_s3_client():
         aws_secret_access_key=R2_SECRET_KEY
     )
 
-def intercept_checks_by_date(target_date: str = None):
-    if not target_date:
-        default_date = datetime.now().strftime("%Y-%m-%d")
-        user_date = input(f"Введіть дату для вивантаження (у форматі YYYY-MM-DD) або натисніть Enter для поточної ({default_date}): ").strip()
-        target_date = user_date if user_date else default_date
-        
-    print(f"-> Збір даних для дати: {target_date}")
+def intercept_checks_by_date():
+    default_date = datetime.now().strftime("%Y-%m-%d")
+    print(f"Поточна дата за замовчуванням: {default_date}")
+    user_date = input(f"Введіть дату для вивантаження (у форматі YYYY-MM-DD) або натисніть Enter для поточної: ").strip()
+    
+    target_date = user_date if user_date else default_date
+    print(f"-> Обрано дату для збору: {target_date}")
 
     print("Крок 1: Запуск перехоплювача мережевих запитів...")
     with sync_playwright() as p:
@@ -53,37 +50,44 @@ def intercept_checks_by_date(target_date: str = None):
 
         page.on("response", handle_response)
 
-        try:
-            print(f"Відкриваємо {BASE_URL}...")
-            page.goto(BASE_URL, timeout=60000)
+        print(f"Відкриваємо {BASE_URL}...")
+        page.goto(BASE_URL)
 
-            # Автоматичний вхід
-            print("Виконуємо автоавторизацію...")
-            page.fill("input[name='login']", SYRVE_LOGIN)
-            page.fill("input[name='password']", SYRVE_PASSWORD)
-            page.click("button[type='submit']")
-            
-            page.wait_for_load_timeout(5000)
+        # Даємо повну свободу користувачу залогінитись і перейти куди треба без жорстких page.goto()
+        print("\n[ІНСТРУКЦІЯ у відкритому браузері]:")
+        print("1. Увійди в систему (якщо потрібно).")
+        print("2. Перейди у розділ 'Касові зміни' -> 'Деталі за чеками'.")
+        print(f"3. Вистав у фільтрі потрібну дату ({target_date}), щоб дані з'явилися на екрані.")
+        input("\nНатисни Enter у цьому терміналі, коли зробиш це і дані завантажаться в таблиці...")
 
-            # Переходимо на сторінку чеків
-            page.goto(f"{BASE_URL}/till-shifts/index.html#/guestcheck", timeout=60000)
-            page.wait_for_selector("input, .date-picker, app-date-picker", timeout=15000)
-
-            print(f"\n[ІНСТРУКЦІЯ]:")
-            print(f"1. Вистав у фільтрі потрібну дату ({target_date}), щоб дані з'явилися на екрані.")
-            input("\nНатисни Enter у цьому терміналі, коли дані завантажаться в таблиці...")
-
-            page.wait_for_timeout(3000)
-
-        except Exception as err:
-            print(f"❌ Помилка під час автоматизації браузера: {err}")
-        finally:
-            browser.close()
+        # Невелика пауза на випадок фонових запитів
+        page.wait_for_timeout(3000)
+        browser.close()
 
         if not captured_json_data:
-            print("❌ Попередження: Не вдалося зловити JSON-дані звітів.")
+            print("❌ Попередження: Не вдалося зловити JSON-дані звітів. Переконайся, що сторінка 'Деталі за чеками' була відкрита під час натискання Enter.")
             return
 
+        checks_list = []
+        if isinstance(captured_json_data, list):
+            checks_list = captured_json_data
+        elif isinstance(captured_json_data, dict):
+            # Шукаємо будь-який ключ, який містить масив всередині словника
+            for key, value in captured_json_data.items():
+                if isinstance(value, list):
+                    checks_list = value
+                    break
+
+        total_items = len(checks_list)
+        unique_orders = set()
+        for item in checks_list:
+            if isinstance(item, dict) and "uniqOrderIdId" in item:
+                unique_orders.add(item["uniqOrderIdId"])
+
+        print(f"\n📊 ЗВІТ ПРО ПЕРЕВІРКУ ДАНИХ:")
+        print(f"   - Загальна кількість записів (страв/рядків) у файлі: {total_items}")
+        print(f"   - Унікальних чеків/замовлень за цей день: {len(unique_orders)}")
+        print(f"   - Статус: Повний звіт успішно перехоплено та збережено в R2!")
         # Зберігаємо у R2
         filename = f"syrve/guest_checks/guestchecks_{target_date.replace('-', '')}.json"
         

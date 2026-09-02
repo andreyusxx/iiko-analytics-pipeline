@@ -6,13 +6,6 @@ from loaders.syrve_silver_loader import process_new_files
 from transformers.create_gold_layer import build_gold_layer
 
 if __name__ == "__main__":
-    # Рахуємо дату за вчора
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    print(f"🧪 Тестовий запуск збору даних за ВЧОРА: {yesterday}")
-    
-    # 1. Запускаємо вивантаження чеків за вчора в Bronze шар (R2)
-    intercept_checks_by_date(target_date=yesterday)
-    
     # 2. Очищуємо та переносимо дані в Silver шар (Neon DB)
     print("\n🔄 Запуск Silver-трансформації...")
     process_new_files()
