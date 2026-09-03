@@ -70,4 +70,4 @@ with DAG(
     )
 
 
-    t1_extract_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality
+    t1_extract_bronze >> t2_transform_silver >> t4_check_quality >> t3_create_gold
