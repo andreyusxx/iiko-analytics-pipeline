@@ -5,3 +5,4 @@ __pycache__/
 airflow/logs/
 postgres_data/
 superset_home/
+auth.json

@@ -10,7 +10,7 @@ from airflow.exceptions import AirflowException
 sys.path.insert(0, '/opt/airflow/project')
 
 # Імпортуємо актуальні функції для пайплайну
-from extractors.syrve_checks_scraper import intercept_checks_by_date
+from extractors.syrve_daily_scraper import extract_today_checks
 from loaders.syrve_silver_loader import process_new_files  
 from transformers.create_gold_layer import build_gold_layer 
 
@@ -39,7 +39,7 @@ with DAG(
     'iiko_restaurant_etl_pipeline',
     default_args=default_args,
     description='Пайплайн ресторанної аналітики Syrve: Bronze -> Silver -> Gold',
-    schedule_interval='@hourly',  # Запуск щогодини
+    schedule_interval='50 23 * * *',
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=['syrve', 'etl', 'restaurant'],
@@ -48,7 +48,7 @@ with DAG(
     # Завдання 1: Запит до Syrve API та збереження сирих даних у Bronze (Cloudflare R2)
     t1_extract_bronze = PythonOperator(
         task_id='extract_syrve_to_bronze',
-        python_callable=intercept_checks_by_date,
+        python_callable=extract_today_checks,
     )
 
     # Завдання 2: Очищення та збагачення даних у Silver (PostgreSQL / Neon) з категоріями
@@ -69,5 +69,5 @@ with DAG(
         python_callable=check_data_quality,
     )
 
-    # Послідовність виконання задач у DAG
+
     t1_extract_bronze >> t2_transform_silver >> t3_create_gold >> t4_check_quality
