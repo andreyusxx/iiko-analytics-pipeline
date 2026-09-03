@@ -17,38 +17,6 @@ services:
         limits:
           memory: 1G
 
-  airflow:
-    image: apache/airflow:2.8.1
-    command: standalone
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@postgres/airflow
-      - _AIRFLOW_WWW_USER_USERNAME=${_AIRFLOW_WWW_USER_USERNAME}
-      - _AIRFLOW_WWW_USER_PASSWORD=${_AIRFLOW_WWW_USER_PASSWORD}
-      - _AIRFLOW_WWW_USER_FIRSTNAME=${_AIRFLOW_WWW_USER_FIRSTNAME}
-      - _AIRFLOW_WWW_USER_LASTNAME=${_AIRFLOW_WWW_USER_LASTNAME}
-      - _AIRFLOW_WWW_USER_ROLE=${_AIRFLOW_WWW_USER_ROLE}
-      - _AIRFLOW_WWW_USER_EMAIL=${_AIRFLOW_WWW_USER_EMAIL}
-      - AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT=300
-      - AIRFLOW_CONN_POSTGRES_DEFAULT=${DATABASE_URL}
-      - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=60
-    ports:
-      - "8081:8080"
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
-      - .:/opt/airflow/project 
-    depends_on:
-      - postgres
-    networks:
-      - airflow-net
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-
   metabase:
     image: metabase/metabase:latest
     container_name: metabase
