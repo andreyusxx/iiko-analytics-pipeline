@@ -22,7 +22,7 @@ def extract_today_checks():
     print(f"-> Автоматичний збір даних за поточний день: {target_date}")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
 
         if os.path.exists(AUTH_FILE):
             print("🔑 Використовуємо збережену сесію (auth.json)...")
@@ -49,24 +49,12 @@ def extract_today_checks():
         page.on("response", handle_response)
 
         try:
-            print(f"Відкриваємо {BASE_URL}...")
-            page.goto(BASE_URL, timeout=60000)
-
-            # Якщо нас перекинуло на сторінку логіну або ми без сесії
-            page.wait_for_timeout(3000)
-            if "login" in page.url or page.locator("input[name='login']").count() > 0:
-                print("\n[ІНСТРУКЦІЯ]: Будь ласка, увійди в систему у відкритому браузері вручну.")
-                input("Натисни Enter у цьому терміналі, коли успішно залогінишся і побачиш головну сторінку...")
-                
-                # Зберігаємо нову сесію для наступних автоматичних запусків
-                context.storage_state(path=AUTH_FILE)
-                print("💾 Нову сесію успішно збережено в auth.json!")
-
             print("Переходимо на сторінку 'Деталі за чеками'...")
+            # Завдяки auth.json ми відразу потрапимо на сторінку звітів в обхід форми логіну
             page.goto(f"{BASE_URL}/till-shifts/index.html#/guestcheck", timeout=60000)
 
             print("Очікування завантаження даних за сьогодні...")
-            page.wait_for_timeout(10000)
+            page.wait_for_timeout(15000)
             
 
         except Exception as err:
