@@ -12,10 +12,7 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    deploy:
-      resources:
-        limits:
-          memory: 1G
+
 
   metabase:
     image: metabase/metabase:latest
@@ -33,10 +30,7 @@ services:
       - airflow-net
     depends_on:
       - postgres
-    deploy:
-      resources:
-        limits:
-          memory: 1G
+
 
   telegram_bot:
     build: .
@@ -49,10 +43,7 @@ services:
       - .:/app
     networks:
       - airflow-net
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+
 
 networks:
   airflow-net:
