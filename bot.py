@@ -398,7 +398,7 @@ async def process_ai_question(message: types.Message, state: FSMContext):
         
         # Захист: перевіряємо, чи це точно SELECT
         if not sql_query.upper().startswith("SELECT"):
-            await message.answer("⚠️ Я можу виконувати лише пошук та аналітику даних (тільки SELECT запити).")
+            await message.answer("⚠️ Я можу виконувати лише аналітичні запити (тільки пошук та статистика). Зміна чи видалення даних заборонені з міркувань безпеки.")
             await state.clear()
             return
 
@@ -434,6 +434,11 @@ async def process_ai_question(message: types.Message, state: FSMContext):
                 )
                 sql_query = fix_response.choices[0].message.content.replace("```sql", "").replace("```", "").strip()
                 print(f"🛠 [AI DEBUG] Fixed SQL: {sql_query}")
+
+                if not rows:
+                    await message.answer("ℹ️ За вашим запитом не знайдено жодних даних у системі.")
+                    await state.clear()
+                    return
 
         cur.close()
         conn.close()
