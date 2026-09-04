@@ -140,7 +140,7 @@ def mark_all_unpaid_as_paid(start_date, end_date):
         cur.execute("""
             UPDATE staff_shifts 
             SET is_paid = TRUE 
-            WHERE shift_date BETWEEN %s AND %s;
+            WHERE shift_date BETWEEN %s AND %s AND is_paid = FALSE;
         """, (start_date, end_date))
         conn.commit()
         count = cur.rowcount
@@ -150,6 +150,26 @@ def mark_all_unpaid_as_paid(start_date, end_date):
     except Exception as e:
         conn.rollback()
         raise e
+
+def get_aggregated_payroll(start_date: str, end_date: str):
+    """Повертає згруповані суми до виплати працівникам за період"""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT e.full_name, SUM(s.shift_rate) as total, COUNT(s.id) as shifts_count
+        FROM staff_shifts s
+        JOIN syrve_employees e ON s.employee_id = e.id
+        WHERE s.shift_date BETWEEN %s AND %s AND s.is_paid = FALSE
+        GROUP BY e.full_name;
+    """, (start_date, end_date))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    return [
+        {"employee_name": row[0], "total": float(row[1]) if row[1] else 0.0, "shifts_count": row[2]}
+        for row in rows
+    ]
     
 def get_today_shifts():
     """Повертає список працівників, які мають зміну сьогодні"""

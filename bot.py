@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 # Імпортуємо наші функції з database.py
-from database import get_connection, add_employee, get_today_shifts, register_shift, toggle_shift, update_employee
+from database import get_aggregated_payroll, get_connection, add_employee, get_today_shifts, register_shift, toggle_shift, update_employee
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database import get_unpaid_shifts, mark_all_unpaid_as_paid, get_report_for_dates, delete_employee_by_id
 from storage import upload_payroll_report
@@ -269,30 +269,73 @@ async def process_end_date(message: types.Message, state: FSMContext):
     start_date = data['start_date']
 
     try:
-        # 1. Екстракція (Extract): витягуємо дані з бази за обраний період
-        report_data = get_report_for_dates(start_date, end_date)
+
+        aggregated_data = get_aggregated_payroll(start_date, end_date)
         
-        if not report_data:
-            await message.answer("⚠️ За вказаний період не знайдено жодної зміни.")
+        if not aggregated_data:
+            await message.answer("⚠️ За вказаний період не знайдено неоплачених змін.")
             await state.clear()
             return
+        
+        await state.update_data(end_date=end_date)
 
-        # 2. Завантаження в Data Lake (Load): формуємо унікальне ім'я файлу та відправляємо в R2
+        report_text = f"📊 **Попередній розрахунок виплат ({start_date} — {end_date}):**\n\n"
+        grand_total = 0
+        for item in aggregated_data:
+            report_text += f"• **{item['employee_name']}**: {item['total']} грн ({item['shifts_count']} змін)\n"
+            grand_total += item['total']
+        
+        report_text += f"\n💰 **Загальна сума до виплати:** {grand_total} грн"
+
+        # Створюємо кнопку підтвердження
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Підтвердити і закрити", callback_data="confirm_payroll"),
+                InlineKeyboardButton(text="❌ Скасувати", callback_data="cancel_payroll")
+            ]
+        ])
+
+        await message.answer(report_text, parse_mode="Markdown", reply_markup=keyboard)
+
+    except Exception as e:
+        await message.answer(f"❌ Помилка під час формування звіту: {e}")
+        await state.clear()
+
+@dp.callback_query(F.data == "confirm_payroll")
+async def confirm_payroll_handler(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+
+    try:
+        # Витягуємо повні сирі дані для R2
+        report_data = get_report_for_dates(start_date, end_date)
+        
+        # Завантаження в Cloudflare R2
         filename = f"payroll_{start_date}_{end_date}_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
         upload_payroll_report(report_data, filename)
 
-        # 3. Оновлення статусу в базі (транзакція закриття виплат)
+        # Оновлення статусу в базі (тільки неоплачені за цей період)
         count = mark_all_unpaid_as_paid(start_date, end_date)
-        await message.answer(
-            f"✅ Успішно виконано!\n"
-            f"• Звіт вивантажено в Cloudflare R2: `payroll_reports/{filename}`\n"
+
+        await callback.message.edit_text(
+            f"✅ **Період успішно закрито!**\n"
+            f"• Звіт вивантажено в R2: `payroll_reports/{filename}`\n"
             f"• Позначено як оплачені: {count} змін(и) у період з {start_date} по {end_date}.",
             parse_mode="Markdown"
         )
     except Exception as e:
-        await message.answer(f"❌ Помилка під час обробки пайплайну: {e}")
+        await callback.message.edit_text(f"❌ Помилка під час закриття періоду: {e}")
     
     await state.clear()
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "cancel_payroll")
+async def cancel_payroll_handler(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("❌ Операцію закриття періоду скасовано.")
+    await state.clear()
+    await callback.answer()
 
 @dp.callback_query(lambda c: c.data.startswith("del_employee_"))
 async def callback_delete_employee(callback: types.CallbackQuery):
