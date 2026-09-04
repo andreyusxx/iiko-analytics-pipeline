@@ -375,38 +375,77 @@ async def process_ai_question(message: types.Message, state: FSMContext):
     """
     
     try:
-        # 1. Генерація SQL за допомогою суворої системної інструкції для Llama-3.3
+        system_prompt = (
+            "Ти експерт з PostgreSQL для ресторанного бізнесу. "
+            "Поверни ВИКЛЮЧНО чистий SQL-запит без форматування markdown (без ```sql). "
+            "Починай одразу з SELECT. "
+            "Для днів тижня використовуй функцію EXTRACT(ISODOW FROM shift_date) або TO_CHAR(date, 'Day'). "
+            "Завжди використовуй готові таблиці 'gold_*' для аналітики продажів, якщо це можливо."
+        )
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Схема бази даних:\n{db_schema}\n\nЗапитання користувача: {user_question}"}
+        ]
+
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
-            messages=[
-                {
-                    "role": "system", 
-                    "content": "Ти генератор SQL-запитів для PostgreSQL. Ти мусиш повернути ВИКЛЮЧНО чистий SQL-запит. Жодних пояснень, жодних привітань, жодного форматування markdown (не використовуй ```sql). Тільки валідний SQL-код, що починається з SELECT."
-                },
-                {
-                    "role": "user", 
-                    "content": f"Схема бази даних:\n{db_schema}\n\nЗапитання користувача: {user_question}"
-                }
-            ],
+            messages=messages,
             temperature=0
         )
         sql_query = response.choices[0].message.content.strip()
-        
-        # Надійне очищення від можливих markdown-тегів
         sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
-        print(f"🛠 [AI DEBUG] Generated SQL: {sql_query}")  # Виведе в термінал Docker для перевірки
         
-        # 2. Виконання запиту в базі даних Neon PostgreSQL
+        # Захист: перевіряємо, чи це точно SELECT
+        if not sql_query.upper().startswith("SELECT"):
+            await message.answer("⚠️ Я можу виконувати лише пошук та аналітику даних (тільки SELECT запити).")
+            await state.clear()
+            return
+
+        print(f"🛠 [AI DEBUG] Generated SQL: {sql_query}")
+        
+        # 2. Виконання запиту з механізмом самовиправлення (Self-Correction)
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute(sql_query)
-        rows = cur.fetchall()
+        
+        rows = None
+        error_message = None
+        max_retries = 2
+        
+        for attempt in range(max_retries):
+            try:
+                cur.execute(sql_query)
+                rows = cur.fetchall()
+                error_message = None
+                break
+            except Exception as db_err:
+                conn.rollback() # скидаємо транзакцію при помилці
+                error_message = str(db_err)
+                print(f"⚠️ [AI SQL ERROR] Спроба {attempt+1} не вдалася: {error_message}")
+                
+                # Просимо модель виправити свій же SQL на основі помилки бази
+                fix_response = client.chat.completions.create(
+                    model="openai/gpt-oss-20b",
+                    messages=[
+                        {"role": "system", "content": "Ти відладник SQL. База даних повернула помилку. Виправ SQL-запит і поверни ТІЛЬКИ виправлений чистий SQL без markdown."},
+                        {"role": "user", "content": f"Схема:\n{db_schema}\n\nПомилковий SQL:\n{sql_query}\n\nПомилка бази даних:\n{error_message}"}
+                    ],
+                    temperature=0
+                )
+                sql_query = fix_response.choices[0].message.content.replace("```sql", "").replace("```", "").strip()
+                print(f"🛠 [AI DEBUG] Fixed SQL: {sql_query}")
+
         cur.close()
         conn.close()
+
+        if error_message:
+            await message.answer("❌ Не вдалося сформувати правильний запит до бази даних після кількох спроб.")
+            await state.clear()
+            return
         
-        print(f"📊 [AI DEBUG] DB Result: {rows}")  # Виведе результати з бази
+        print(f"📊 [AI DEBUG] DB Result: {rows}")
         
-        # 3. Формування відповіді для користувача
+        # 3. Формування фінальної відповіді
         summary_response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[
@@ -422,14 +461,12 @@ async def process_ai_question(message: types.Message, state: FSMContext):
             temperature=0.1
         )
         final_answer = summary_response.choices[0].message.content.strip()
-        
         await message.answer(f"📊 **Результат аналізу:**\n\n{final_answer}", parse_mode="Markdown")
         
     except Exception as e:
-        print(f"❌ [AI ERROR] {e}")
-        await message.answer(f"❌ Сталася помилка під час обробки запиту: {e}")
-    finally:
-        await state.clear()
+        await message.answer(f"❌ Сталася неочікувана помилка під час обробки запиту: {e}")
+    
+    await state.clear()
 
 # Запуск бота
 async def main():
