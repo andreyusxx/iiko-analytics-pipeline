@@ -77,5 +77,5 @@
 * *«Виходячи з показників продажів та днів із найменшою активністю, запропонуй 3 конкретні кроки для збільшення виручки наступного місяця.»*
 
 <p align="center">
-  <img src="images/image.png" alt="Bot Demo" width="400"/>
+  <img src="images/image.png" alt="Bot Demo"/>
 </p>
